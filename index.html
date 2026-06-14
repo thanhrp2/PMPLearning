@@ -56,91 +56,104 @@
 <body class="bg-slate-50 text-slate-800 font-sans min-h-screen flex flex-col antialiased selection:bg-rose-500/10 selection:text-rose-700">
 
   <!-- TOP GLASS NAVIGATION BAR -->
-  <header class="sticky top-0 z-40 bg-white/80 backdrop-blur-md border-b border-slate-200/80 px-6 py-4 flex items-center justify-between">
-    <div class="flex items-center space-x-3">
-      <div class="h-10 w-10 rounded-xl bg-gradient-to-tr from-rose-500 to-indigo-600 flex items-center justify-center text-white shadow-md shadow-rose-500/20">
+  <header class="sticky top-0 z-40 bg-white/80 backdrop-blur-md border-b border-slate-200/80 px-3 py-3 md:px-6 md:py-4 flex items-center justify-between">
+    <div class="flex items-center space-x-2 md:space-x-3 shrink min-w-0">
+      <div class="h-9 w-9 md:h-10 md:w-10 rounded-xl bg-gradient-to-tr from-rose-500 to-indigo-600 flex items-center justify-center text-white shadow-md shadow-rose-500/20 shrink-0">
         <i data-lucide="award" class="h-5 w-5"></i>
       </div>
-      <div>
-        <h1 class="text-lg font-display font-bold tracking-tight text-slate-900 flex items-center gap-2">
+      <div class="min-w-0">
+        <h1 class="text-sm md:text-lg font-display font-bold tracking-tight text-slate-900 flex items-center gap-1 md:gap-2 truncate">
           PMP 3W-1L Coach
-          <span class="text-[10px] font-mono font-medium px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 border border-slate-200">v2.0 Plain JS</span>
+          <span class="text-[9px] md:text-[10px] font-mono font-medium px-1.5 py-0.5 rounded-full bg-slate-100 text-slate-600 border border-slate-200 shrink-0 hidden sm:inline-block">v2.0 Plain JS</span>
         </h1>
-        <p class="text-[11px] text-slate-500 font-medium">Sổ Tay Sửa Lỗi Sai & Cố Vấn Khắc Phục Tư Duy Lệch PMP</p>
+        <p class="text-[10px] md:text-[11px] text-slate-500 font-medium truncate hidden md:block">Sổ Tay Sửa Lỗi Sai & Cố Vấn Khắc Phục Tư Duy Lệch PMP</p>
       </div>
     </div>
     
     <!-- STATS OVERVIEW HEADER CARDS (Desktop) -->
-    <div class="hidden md:flex items-center space-x-6 text-xs font-medium">
-      <div class="bg-slate-100/50 border border-slate-200 rounded-lg px-3 py-1.5 flex items-center gap-2">
-        <span class="h-2 w-2 rounded-full bg-indigo-500 animate-pulse"></span>
+    <div class="hidden xl:flex items-center space-x-4 text-xs font-medium shrink-0">
+      <div class="bg-slate-100/50 border border-slate-200 rounded-lg px-2.5 py-1.5 flex items-center gap-1.5">
+        <span class="h-1.5 w-1.5 rounded-full bg-indigo-500 animate-pulse"></span>
         <span class="text-slate-500">Buổi Học:</span>
         <strong id="stat-sessions-count" class="font-mono text-slate-800">0</strong>
       </div>
-      <div class="bg-emerald-50 border border-emerald-100 rounded-lg px-3 py-1.5 flex items-center gap-2 text-emerald-700">
+      <div class="bg-emerald-50 border border-emerald-100 rounded-lg px-2.5 py-1.5 flex items-center gap-1.5 text-emerald-700">
         <i data-lucide="check-circle-2" class="h-3.5 w-3.5"></i>
         <span>Đúng:</span>
         <strong id="stat-correct-count" class="font-mono">0</strong>
       </div>
-      <div class="bg-rose-50 border border-rose-100 rounded-lg px-3 py-1.5 flex items-center gap-2 text-rose-700">
+      <div class="bg-rose-50 border border-rose-100 rounded-lg px-2.5 py-1.5 flex items-center gap-1.5 text-rose-700">
         <i data-lucide="x-circle" class="h-3.5 w-3.5"></i>
         <span>Sai:</span>
         <strong id="stat-wrong-count" class="font-mono">0</strong>
       </div>
-      <div class="bg-amber-50 border border-amber-100 rounded-lg px-3 py-1.5 flex items-center gap-3 text-amber-700">
-        <div class="flex items-center gap-1.5">
+      <div class="bg-amber-50 border border-amber-100 rounded-lg px-2.5 py-1.5 flex items-center gap-2 text-amber-700">
+        <div class="flex items-center gap-1">
           <i data-lucide="bookmark" class="h-3.5 w-3.5"></i>
-          <span>Cần xem lại:</span>
+          <span>Xem lại:</span>
         </div>
         <strong id="stat-flagged-count" class="font-mono">0</strong>
       </div>
     </div>
 
     <!-- MAIN INTERACTION ACTIONS -->
-    <div class="flex items-center space-x-3">
-      <button onclick="quizMode.start()" class="flex items-center gap-1.5 px-3 py-2 text-xs font-semibold text-slate-700 hover:text-slate-900 bg-slate-100 hover:bg-slate-200 border border-slate-200 rounded-lg transition-all cursor-pointer">
-        <i data-lucide="zap" class="h-3.5 w-3.5 text-amber-500"></i>
-        <span>Luyện Tập Tốc Độ</span>
+    <div class="flex items-center space-x-1.5 md:space-x-3 shrink-0">
+      <!-- Database & Backup Dropdown Container -->
+      <div class="relative inline-block text-left" id="backup-dropdown-container">
+        <!-- Hidden elements for file upload actions -->
+        <input type="file" id="import-excel-file" accept=".xlsx,.xls,.csv" class="hidden" onchange="backup.importExcel(event)" />
+        <input type="file" id="import-json-file" accept=".json" class="hidden" onchange="backup.importJSON(event)" />
+
+        <button onclick="app.toggleDbDropdown(event)" class="flex items-center gap-1 md:gap-1.5 px-2 py-1.5 md:px-3 md:py-2 text-[11px] md:text-xs font-semibold text-slate-700 hover:text-indigo-600 bg-white hover:bg-slate-50 border border-slate-200 rounded-lg shadow-sm transition-all cursor-pointer">
+          <i data-lucide="database" class="h-3.5 w-3.5 text-indigo-500 shrink-0"></i>
+          <span class="hidden sm:inline">Sao Lưu & Dữ Liệu</span>
+          <span class="inline sm:hidden">Dữ Liệu</span>
+          <i data-lucide="chevron-down" class="h-3 w-3 text-slate-400 shrink-0"></i>
+        </button>
+        
+        <div id="backup-dropdown-menu" class="hidden absolute right-0 mt-2 w-64 rounded-xl bg-white border border-slate-200 shadow-xl overflow-hidden z-50 text-xs py-1.5 animate-fadeIn">
+          <div class="px-3 py-1.5 text-[10px] font-bold text-slate-450 uppercase tracking-wider border-b border-slate-100 mb-1">Nhập / Xuất Excel</div>
+          <button onclick="document.getElementById('import-excel-file').click(); app.closeDbDropdown();" class="w-full text-left px-3.5 py-2 hover:bg-slate-50 flex items-center gap-2 cursor-pointer text-slate-700">
+            <i data-lucide="file-spreadsheet" class="h-3.5 w-3.5 text-emerald-600"></i> Nhập từ Excel / CSV
+          </button>
+          <button onclick="backup.exportToExcel(); app.closeDbDropdown();" class="w-full text-left px-3.5 py-2 hover:bg-slate-50 flex items-center gap-2 cursor-pointer text-indigo-600 font-semibold">
+            <i data-lucide="file-output" class="h-3.5 w-3.5"></i> Xuất Excel Thống Kê
+          </button>
+          <button onclick="backup.exportTemplate(); app.closeDbDropdown();" class="w-full text-left px-3.5 py-2 hover:bg-slate-50 flex items-center gap-2 cursor-pointer text-slate-550">
+            <i data-lucide="download" class="h-3.5 w-3.5 text-slate-400"></i> Tải Mẫu Excel PMP
+          </button>
+          
+          <div class="px-3 py-1.5 text-[10px] font-bold text-slate-450 uppercase tracking-wider border-y border-slate-100 my-1">Tệp Sao Lưu Hệ Thống (.JSON)</div>
+          <button onclick="backup.downloadJSON(); app.closeDbDropdown();" class="w-full text-left px-3.5 py-2 hover:bg-slate-50 flex items-center gap-2 cursor-pointer text-slate-755">
+            <i data-lucide="download-cloud" class="h-3.5 w-3.5 text-indigo-500"></i> Tải File Sao Lưu (.JSON)
+          </button>
+          <button onclick="document.getElementById('import-json-file').click(); app.closeDbDropdown();" class="w-full text-left px-3.5 py-2 hover:bg-slate-50 flex items-center gap-2 cursor-pointer text-slate-755">
+            <i data-lucide="upload-cloud" class="h-3.5 w-3.5 text-indigo-500"></i> Tải Lên File Sao Lưu (.JSON)
+          </button>
+        </div>
+      </div>
+
+      <!-- Quick speed test button -->
+      <button onclick="quizMode.start()" class="flex items-center gap-1 px-2 py-1.5 md:px-3 md:py-2 text-[11px] md:text-xs font-semibold text-slate-700 hover:text-slate-900 bg-slate-100 hover:bg-slate-200 border border-slate-200 rounded-lg transition-all cursor-pointer">
+        <i data-lucide="zap" class="h-3.5 w-3.5 text-amber-550 shrink-0"></i>
+        <span class="hidden md:inline">Luyện Tập Tốc Độ</span>
+        <span class="inline md:hidden">Luyện Tập</span>
       </button>
-      <button onclick="modal.open('add-session-modal')" class="flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg shadow-sm shadow-indigo-600/10 transition-all cursor-pointer">
-        <i data-lucide="calendar" class="h-3.5 w-3.5"></i>
-        <span>Thêm Buổi Học</span>
+
+      <!-- Add New Session button -->
+      <button onclick="modal.open('add-session-modal')" class="flex items-center gap-1 px-2.5 py-1.5 md:px-3.5 md:py-2 text-[11px] md:text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg shadow-sm shadow-indigo-600/10 transition-all cursor-pointer">
+        <i data-lucide="calendar" class="h-3.5 w-3.5 shrink-0"></i>
+        <span class="hidden md:inline">Thêm Buổi Học</span>
+        <span class="inline md:hidden">+ Buổi</span>
       </button>
     </div>
   </header>
 
-  <!-- COLLAPSIBLE BACKUP TOOLBAR -->
-  <section id="backup-toolbar" class="bg-slate-100/60 border-b border-slate-200 px-6 py-3 flex flex-wrap gap-4 items-center justify-between text-xs">
-    <div class="flex items-center space-x-4">
-      <span class="text-slate-500 font-medium flex items-center gap-1"><i data-lucide="database" class="h-3.5 w-3.5"></i> Đồng bộ & Sao lưu:</span>
-      <div class="flex items-center space-x-2">
-        <input type="file" id="import-excel-file" accept=".xlsx,.xls,.csv" class="hidden" onchange="backup.importExcel(event)" />
-        <button onclick="document.getElementById('import-excel-file').click()" class="bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 px-2.5 py-1.5 rounded flex items-center gap-1 cursor-pointer">
-          <i data-lucide="file-spreadsheet" class="h-3 w-3 text-emerald-600"></i> Nhập từ Excel / CSV
-        </button>
-        <button onclick="backup.exportTemplate()" class="bg-white hover:bg-slate-50 border border-slate-200 text-slate-600 px-2.5 py-1.5 rounded flex items-center gap-1 cursor-pointer">
-          <i data-lucide="download" class="h-3 w-3"></i> Tải Mẫu Excel PMP
-        </button>
-      </div>
-    </div>
-    
-    <div class="flex items-center space-x-3">
-      <button onclick="backup.downloadJSON()" class="text-indigo-600 hover:text-indigo-700 font-semibold flex items-center gap-1 cursor-pointer">
-        <i data-lucide="download" class="h-3 w-3"></i> Tải File Sao Lưu (.JSON)
-      </button>
-      <span class="text-slate-300">|</span>
-      <input type="file" id="import-json-file" accept=".json" class="hidden" onchange="backup.importJSON(event)" />
-      <button onclick="document.getElementById('import-json-file').click()" class="text-indigo-600 hover:text-indigo-700 font-semibold flex items-center gap-1 cursor-pointer">
-        <i data-lucide="upload" class="h-3 w-3"></i> Tải Lên File Sao Lưu (.JSON)
-      </button>
-    </div>
-  </section>
-
   <!-- APPLICATION CORE WINDOW -->
-  <main class="flex-1 max-w-[1700px] w-full mx-auto px-6 py-6 grid grid-cols-1 lg:grid-cols-12 gap-6 items-start h-[calc(100vh-140px)] overflow-hidden">
+  <main class="flex-1 max-w-[1700px] w-full mx-auto px-4 py-4 md:px-6 md:py-6 grid grid-cols-1 lg:grid-cols-12 gap-6 items-start lg:h-[calc(100vh-145px)] lg:overflow-hidden h-auto overflow-visible">
     
     <!-- LEFT SIDEBAR: SESSIONS & QUESTION DIRECTORY (lg:col-span-4) -->
-    <aside class="lg:col-span-4 flex flex-col h-full bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
+    <aside id="sidebar-panel" class="lg:col-span-4 flex flex-col h-[calc(100vh-190px)] min-h-[480px] lg:h-full bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm flex">
       
       <!-- Session and Filtering top controller -->
       <div class="p-4 border-b border-slate-200 space-y-4">
@@ -175,7 +188,7 @@
         </div>
         
         <div class="grid grid-cols-2 gap-2">
-          <select id="filter-domain" onchange="app.triggerFilter()" class="bg-white border border-slate-200 rounded-lg p-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500">
+          <select id="filter-domain" onchange="app.triggerFilter()" class="bg-white border border-slate-200 rounded-lg p-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500 font-medium">
             <option value="All">Tất cả Vùng kiến thức</option>
             <option value="Process">Process (Quy trình)</option>
             <option value="People">People (Con người)</option>
@@ -185,7 +198,7 @@
             <option value="Other">Khác</option>
           </select>
           
-          <select id="filter-status" onchange="app.triggerFilter()" class="bg-white border border-slate-200 rounded-lg p-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500">
+          <select id="filter-status" onchange="app.triggerFilter()" class="bg-white border border-slate-200 rounded-lg p-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500 font-medium">
             <option value="All">Tất cả Trạng thái</option>
             <option value="Correct">Trả lời Đúng ✅</option>
             <option value="Wrong">Trả lời Sai ❌</option>
@@ -212,8 +225,8 @@
     </aside>
 
     <!-- RIGHT SPLIT MODULE: QUESTION DETAIL DEEP DIVE & EDIT SHEET (lg:col-span-8) -->
-    <section class="lg:col-span-8 h-full bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm flex flex-col">
-      <div class="flex-1 overflow-y-auto no-scrollbar p-6 space-y-6" id="right-view-container">
+    <section id="detail-panel" class="lg:col-span-8 h-[calc(100vh-190px)] min-h-[480px] lg:h-full bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm flex flex-col hidden lg:flex">
+      <div class="flex-grow overflow-y-auto no-scrollbar p-5 md:p-6 space-y-6" id="right-view-container">
         <!-- Interactive Views are mounted dynamically here -->
       </div>
     </section>
@@ -681,11 +694,89 @@
           e.target.value = "";
         };
         reader.readAsText(file);
+      },
+
+      exportToExcel: () => {
+        try {
+          const headers = [
+            "STT", "Vùng Kiến Thức", "Câu Hỏi", 
+            "Phương Án A", "Phương Án B", "Phương Án C", "Phương Án D", 
+            "Đáp Án Đúng", "Lựa Chọn Của Bạn", "What - Sai Cái Gì", 
+            "Why - Tại Sao Nhầm", "Action - Sửa Ở Đâu", "Lesson - Bài Học Rút Ra", "Giải Thích"
+          ];
+          const rows = [];
+          state.sessions.forEach(s => {
+            s.questions.forEach(q => {
+              rows.push([
+                q.stt || "",
+                q.domain || "",
+                q.question || "",
+                q.options?.A || "",
+                q.options?.B || "",
+                q.options?.C || "",
+                q.options?.D || "",
+                q.correctOption || "",
+                q.userOption || "",
+                q.threeWOneL?.what || "",
+                q.threeWOneL?.why || "",
+                q.threeWOneL?.action || "",
+                q.threeWOneL?.lesson || "",
+                q.explanation || ""
+              ]);
+            });
+          });
+          if (rows.length === 0) {
+            alert("Không có dữ liệu câu hỏi sai nào để xuất Excel.");
+            return;
+          }
+          const ws = XLSX.utils.aoa_to_sheet([headers, ...rows]);
+          const wb = XLSX.utils.book_new();
+          XLSX.utils.book_append_sheet(wb, ws, "Danh_Sach_Loi_Sai");
+          XLSX.writeFile(wb, `PMP_DS_Loi_Sai_Export_${new Date().toISOString().split("T")[0]}.xlsx`);
+          showToast("Xuất dữ liệu Excel thành công!");
+        } catch (e) {
+          alert("Lỗi xuất Excel: " + e.message);
+        }
       }
     };
 
     // Main Application Render Loop Controller
     const app = {
+      toggleDbDropdown: (e) => {
+        e.stopPropagation();
+        const menu = document.getElementById("backup-dropdown-menu");
+        if (menu) {
+          menu.classList.toggle("hidden");
+        }
+      },
+
+      closeDbDropdown: () => {
+        const menu = document.getElementById("backup-dropdown-menu");
+        if (menu) {
+          menu.classList.add("hidden");
+        }
+      },
+
+      setMobileView: (view) => {
+        state.mobileViewState = view;
+        const sidebar = document.getElementById("sidebar-panel");
+        const detail = document.getElementById("detail-panel");
+        
+        if (view === "list") {
+          sidebar.classList.remove("hidden");
+          sidebar.classList.add("flex");
+          detail.classList.add("hidden");
+          detail.classList.remove("flex", "lg:flex");
+          detail.classList.add("lg:flex");
+        } else {
+          sidebar.classList.add("hidden");
+          sidebar.classList.remove("flex");
+          detail.classList.remove("hidden");
+          detail.classList.add("flex");
+        }
+        lucide.createIcons();
+      },
+
       init: async () => {
         state.sessions = await persistence.load();
         if (state.sessions.length > 0) {
@@ -705,6 +796,7 @@
         } else {
           app.renderEmptyState();
         }
+        app.setMobileView("list");
         lucide.createIcons();
       },
 
@@ -922,6 +1014,7 @@
         } else {
           app.renderEmptyState();
         }
+        app.setMobileView("detail");
       },
 
       toggleFlagActiveQuestion: async (id) => {
@@ -964,6 +1057,9 @@
           </div>
         `;
         lucide.createIcons();
+        if (state.mobileViewState === "detail") {
+          app.setMobileView("list");
+        }
       },
 
       renderQuestionDetail: (q) => {
@@ -993,7 +1089,10 @@
         dest.innerHTML = `
           <!-- Header and controls -->
           <div class="flex items-center justify-between border-b border-slate-100 pb-4">
-            <div class="flex items-center gap-3">
+            <div class="flex items-center gap-2">
+              <button onclick="app.setMobileView('list')" class="lg:hidden flex items-center gap-1 text-slate-500 hover:text-slate-800 px-2 py-1.5 bg-slate-100 rounded border border-slate-200 text-[11px] font-bold shrink-0">
+                <i data-lucide="arrow-left" class="h-3.5 w-3.5"></i> Quay lại
+              </button>
               <span class="px-2.5 py-1 text-xs font-bold bg-indigo-50 border border-indigo-100 text-indigo-700 rounded-full">${q.domain}</span>
               <span class="text-xs font-mono font-bold text-slate-400">STT: #${q.stt}</span>
             </div>
@@ -1071,12 +1170,6 @@
             </div>
           ` : ""}
           
-          ${q.extension ? `
-            <div class="p-3 border-l-2 border-slate-300 text-[11px] text-slate-500 italic bg-slate-50/30">
-              <strong>Tài liệu tham khảo/Mở rộng:</strong> ${q.extension}
-            </div>
-          ` : ""}
-
           <!-- AI ADVICE & EXPERT COMPANION PANEL (GEMINI INTEGRATED) -->
           <div class="border border-indigo-100 rounded-xl bg-gradient-to-br from-indigo-50/50 to-rose-50/20 overflow-hidden shadow-sm" id="ai-advisor-panel-placeholder">
             <!-- This gets managed below -->
@@ -1295,9 +1388,11 @@
         const dest = document.getElementById("right-view-container");
         const q = app.getCurrentQuestion(); // returns null if adding
 
+        app.setMobileView("detail");
+
         dest.innerHTML = `
           <div class="flex items-center justify-between border-b border-slate-100 pb-3">
-            <h3 class="font-display font-bold text-slate-800 text-base">
+            <h3 class="font-display font-bold text-slate-800 text-sm">
               ${q ? "Hiệu Chỉnh Nhật Ký Lỗi Sai PMP" : "Thêm Câu Hỏi Lỗi Mới PMP"}
             </h3>
             <button onclick="${q ? `app.selectQuestion('${q.id}')` : 'app.renderEmptyState()'}" class="text-slate-500 hover:text-slate-700 cursor-pointer text-xs font-bold leading-none">Hủy bỏ</button>
@@ -1405,10 +1500,6 @@
                 <label class="block text-slate-500 mb-1">Giải thích đề bài lý thuyết (Tùy chọn)</label>
                 <textarea id="form-explanation" rows="2" placeholder="Copy lý giải nguồn đề..." class="w-full p-2 bg-slate-50 border border-slate-200 rounded-lg">${q ? q.explanation : ""}</textarea>
               </div>
-              <div>
-                <label class="block text-slate-500 mb-1">Kiến thức bổ trợ / Trang sách PMBOK / Đường dẫn liên quan</label>
-                <input type="text" id="form-extension" value="${q ? q.extension : ""}" placeholder="PMBOK 7 - Trang 123; Agile Practice Guide..." class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg" />
-              </div>
             </div>
 
             <!-- Submit Buttons -->
@@ -1441,7 +1532,7 @@
         const act = document.getElementById("form-action").value.trim();
         const les = document.getElementById("form-lesson").value.trim();
         const exp = document.getElementById("form-explanation").value.trim();
-        const ext = document.getElementById("form-extension").value.trim();
+        const ext = "";
 
         if (!quest) {
           alert("Vui lòng nhập nội dung đề bài câu hỏi.");
@@ -1737,6 +1828,14 @@
     // Bootstrap app loading
     window.addEventListener("DOMContentLoaded", () => {
       app.init();
+      
+      // Global click handler to close backup dropdown when clicking outside
+      window.addEventListener("click", (e) => {
+        const container = document.getElementById("backup-dropdown-container");
+        if (container && !container.contains(e.target)) {
+          app.closeDbDropdown();
+        }
+      });
     });
   </script>
 </body>
