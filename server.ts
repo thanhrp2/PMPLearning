@@ -9,6 +9,8 @@ import fs from "fs";
 import { createServer as createViteServer } from "vite";
 import { GoogleGenAI, Type } from "@google/genai";
 import dotenv from "dotenv";
+import { initializeApp } from "firebase/app";
+import { getFirestore, collection, doc, getDocs, setDoc, deleteDoc, query, orderBy } from "firebase/firestore";
 
 dotenv.config();
 
@@ -25,6 +27,22 @@ if (!fs.existsSync(DATA_DIR)) {
 }
 if (!fs.existsSync(SESSIONS_FILE)) {
   fs.writeFileSync(SESSIONS_FILE, JSON.stringify([], null, 2), "utf-8");
+}
+
+// Initialize Firebase Firestore securely
+let db: any = null;
+try {
+  const configPath = path.join(process.cwd(), "firebase-applet-config.json");
+  if (fs.existsSync(configPath)) {
+    const firebaseConfig = JSON.parse(fs.readFileSync(configPath, "utf-8"));
+    const firebaseApp = initializeApp(firebaseConfig);
+    db = getFirestore(firebaseApp, firebaseConfig.firestoreDatabaseId);
+    console.log("Firebase Firestore initialized successfully for applet database:", firebaseConfig.firestoreDatabaseId);
+  } else {
+    console.warn("WARNING: firebase-applet-config.json not found. Falling back to local file sessions.json.");
+  }
+} catch (err: any) {
+  console.error("Failed to initialize Firebase Firestore:", err);
 }
 
 // Request parsers
@@ -56,15 +74,74 @@ const getGeminiClient = () => {
  * GET /api/pmp/sessions
  * Fetch all saved practice sessions
  */
-app.get("/api/pmp/sessions", (req, res) => {
+app.get("/api/pmp/sessions", async (req, res) => {
   try {
+    if (db) {
+      console.log("Fetching sessions from Firestore...");
+      const snapshot = await getDocs(collection(db, "sessions"));
+      let sessions = snapshot.docs.map(doc => {
+        const data = doc.data();
+        return {
+          id: data.id,
+          title: data.title,
+          date: data.date,
+          notes: data.notes || "",
+          questions: data.questions || [],
+          updatedAt: data.updatedAt || ""
+        };
+      });
+
+      // Sort by updatedAt or date secondary
+      sessions.sort((a: any, b: any) => {
+        return new Date(a.updatedAt || a.date).getTime() - new Date(b.updatedAt || b.date).getTime();
+      });
+
+      // If Firestore is empty, see if we can migrate the old local JSON data
+      if (sessions.length === 0 && fs.existsSync(SESSIONS_FILE)) {
+        try {
+          const content = fs.readFileSync(SESSIONS_FILE, "utf-8");
+          const localSessions = JSON.parse(content || "[]");
+          if (localSessions.length > 0) {
+            console.log(`Migrating ${localSessions.length} local sessions to Firestore...`);
+            for (const s of localSessions) {
+              const sRef = doc(db, "sessions", s.id);
+              await setDoc(sRef, {
+                id: s.id,
+                userId: "global_user",
+                title: s.title || "Untitled Session",
+                date: s.date || new Date().toISOString().split("T")[0],
+                notes: s.notes || "",
+                questions: s.questions || [],
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString()
+              });
+            }
+            return res.json(localSessions);
+          }
+        } catch (migErr) {
+          console.error("Migration to Firestore failed:", migErr);
+        }
+      }
+
+      return res.json(sessions);
+    }
+
+    // Fallback to local sessions.json when database is unavailable
     if (fs.existsSync(SESSIONS_FILE)) {
       const content = fs.readFileSync(SESSIONS_FILE, "utf-8");
       return res.json(JSON.parse(content || "[]"));
     }
     return res.json([]);
   } catch (err: any) {
-    console.error("Error reading sessions:", err);
+    console.error("Error reading sessions from Firestore, falling back to local file:", err);
+    try {
+      if (fs.existsSync(SESSIONS_FILE)) {
+        const content = fs.readFileSync(SESSIONS_FILE, "utf-8");
+        return res.json(JSON.parse(content || "[]"));
+      }
+    } catch (localErr) {
+      console.error("Local file fallback error:", localErr);
+    }
     return res.status(500).json({ error: "Failed to load practice sessions: " + err.message });
   }
 });
@@ -73,16 +150,59 @@ app.get("/api/pmp/sessions", (req, res) => {
  * POST /api/pmp/sessions
  * Overwrite/Save practice sessions
  */
-app.post("/api/pmp/sessions", (req, res) => {
+app.post("/api/pmp/sessions", async (req, res) => {
   try {
     const sessions = req.body;
     if (!Array.isArray(sessions)) {
       return res.status(400).json({ error: "Invalid data format. Expected an array of sessions." });
     }
+
+    // Update the local cache file
     fs.writeFileSync(SESSIONS_FILE, JSON.stringify(sessions, null, 2), "utf-8");
-    return res.json({ success: true, message: "Practice sessions saved successfully" });
+
+    if (db) {
+      console.log(`Saving ${sessions.length} sessions to Firestore...`);
+      const snapshot = await getDocs(collection(db, "sessions"));
+      const existingIds = snapshot.docs.map(doc => doc.id);
+      const incomingIds = sessions.map((s: any) => s.id);
+
+      // Save each session to Firestore
+      for (const s of sessions) {
+        if (!s.id) continue;
+        const sRef = doc(db, "sessions", s.id);
+        const existingDoc = snapshot.docs.find(d => d.id === s.id);
+        
+        let createdAt = new Date().toISOString();
+        if (existingDoc && existingDoc.data()?.createdAt) {
+          createdAt = existingDoc.data().createdAt;
+        }
+
+        await setDoc(sRef, {
+          id: s.id,
+          userId: "global_user",
+          title: s.title || "Untitled Session",
+          date: s.date || new Date().toISOString().split("T")[0],
+          notes: s.notes || "",
+          questions: s.questions || [],
+          createdAt: createdAt,
+          updatedAt: new Date().toISOString()
+        });
+      }
+
+      // Automatically prune and delete any sessions that were deleted on the client
+      for (const id of existingIds) {
+        if (!incomingIds.includes(id)) {
+          await deleteDoc(doc(db, "sessions", id));
+          console.log(`Pruned session ${id} from Firestore since it was deleted on client.`);
+        }
+      }
+
+      return res.json({ success: true, message: "Practice sessions saved and synced with cloud database flawlessly." });
+    }
+
+    return res.json({ success: true, message: "Practice sessions saved successfully in local server cache." });
   } catch (err: any) {
-    console.error("Error saving sessions:", err);
+    console.error("Error saving sessions to Firestore:", err);
     return res.status(500).json({ error: "Failed to save practice sessions: " + err.message });
   }
 });

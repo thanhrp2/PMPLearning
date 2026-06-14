@@ -818,12 +818,11 @@
 
             // Detect if an existing session already has a matching title or matching body name, and overwrite it if so to prevent duplicates.
             const baseName = file.name.replace(/\.[^/.]+$/, "").trim();
-            const uploadSessionName = baseName + " Import";
+            const uploadSessionName = baseName;
 
             let existingSessionIndex = state.sessions.findIndex(s => {
               const sTitle = s.title.trim().toLowerCase();
-              const sBase = s.title.replace(/\s*Import$/i, "").trim().toLowerCase();
-              return sTitle === uploadSessionName.toLowerCase() || sBase === baseName.toLowerCase();
+              return sTitle === uploadSessionName.toLowerCase();
             });
 
             let sessionObj;
@@ -1101,7 +1100,7 @@
         state.sessions.forEach(s => {
           const opt = document.createElement("option");
           opt.value = s.id;
-          opt.textContent = `${s.title} (${s.questions.length} câu sai)`;
+          opt.textContent = s.title;
           if (s.id === state.selectedSessionId) opt.selected = true;
           sel.appendChild(opt);
         });

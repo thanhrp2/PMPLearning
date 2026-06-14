@@ -1,0 +1,52 @@
+{
+  "entities": {
+    "Session": {
+      "title": "Study Session",
+      "description": "A collection of PMP wrong answer logs and questions parsed from Excel or added manually.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique session ID."
+        },
+        "userId": {
+          "type": "string",
+          "description": "Owner userId."
+        },
+        "title": {
+          "type": "string",
+          "description": "Title of the study session."
+        },
+        "date": {
+          "type": "string",
+          "description": "Creation date of the session."
+        },
+        "notes": {
+          "type": "string",
+          "description": "Notes for the study session."
+        },
+        "questions": {
+          "type": "array",
+          "description": "List of questions with their 3W-1L mistake analysis."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server creation timestamp."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server modification timestamp."
+        }
+      },
+      "required": ["id", "userId", "title"]
+    }
+  },
+  "firestore": {
+    "sessions/{sessionId}": {
+      "schema": "Session",
+      "description": "User specific study sessions containing 3W-1L logs."
+    }
+  }
+}
