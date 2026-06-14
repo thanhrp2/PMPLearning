@@ -1,0 +1,1743 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sổ Tay Sửa Lỗi Sai PMP - 3W-1L Framework & AI Coach</title>
+  
+  <!-- Font and CDN imports -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  
+  <!-- Tailwind CSS Play CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- Tailwind Custom Config to support Space Grotesk and Inter -->
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            display: ['Space Grotesk', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+          }
+        }
+      }
+    }
+  </script>
+  
+  <!-- SheetJS Library for Excel Import/Export -->
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  
+  <!-- Lucide Icons CDN -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <!-- Custom Styles for Animations & Card Flips -->
+  <style>
+    .transition-all-300 {
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    /* Hide scrollbars but keep functionality */
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+    /* Simple Toast Notification style */
+    #toast-notification {
+      transition: transform 0.3s ease, opacity 0.3s ease;
+    }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-800 font-sans min-h-screen flex flex-col antialiased selection:bg-rose-500/10 selection:text-rose-700">
+
+  <!-- TOP GLASS NAVIGATION BAR -->
+  <header class="sticky top-0 z-40 bg-white/80 backdrop-blur-md border-b border-slate-200/80 px-6 py-4 flex items-center justify-between">
+    <div class="flex items-center space-x-3">
+      <div class="h-10 w-10 rounded-xl bg-gradient-to-tr from-rose-500 to-indigo-600 flex items-center justify-center text-white shadow-md shadow-rose-500/20">
+        <i data-lucide="award" class="h-5 w-5"></i>
+      </div>
+      <div>
+        <h1 class="text-lg font-display font-bold tracking-tight text-slate-900 flex items-center gap-2">
+          PMP 3W-1L Coach
+          <span class="text-[10px] font-mono font-medium px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 border border-slate-200">v2.0 Plain JS</span>
+        </h1>
+        <p class="text-[11px] text-slate-500 font-medium">Sổ Tay Sửa Lỗi Sai & Cố Vấn Khắc Phục Tư Duy Lệch PMP</p>
+      </div>
+    </div>
+    
+    <!-- STATS OVERVIEW HEADER CARDS (Desktop) -->
+    <div class="hidden md:flex items-center space-x-6 text-xs font-medium">
+      <div class="bg-slate-100/50 border border-slate-200 rounded-lg px-3 py-1.5 flex items-center gap-2">
+        <span class="h-2 w-2 rounded-full bg-indigo-500 animate-pulse"></span>
+        <span class="text-slate-500">Buổi Học:</span>
+        <strong id="stat-sessions-count" class="font-mono text-slate-800">0</strong>
+      </div>
+      <div class="bg-emerald-50 border border-emerald-100 rounded-lg px-3 py-1.5 flex items-center gap-2 text-emerald-700">
+        <i data-lucide="check-circle-2" class="h-3.5 w-3.5"></i>
+        <span>Đúng:</span>
+        <strong id="stat-correct-count" class="font-mono">0</strong>
+      </div>
+      <div class="bg-rose-50 border border-rose-100 rounded-lg px-3 py-1.5 flex items-center gap-2 text-rose-700">
+        <i data-lucide="x-circle" class="h-3.5 w-3.5"></i>
+        <span>Sai:</span>
+        <strong id="stat-wrong-count" class="font-mono">0</strong>
+      </div>
+      <div class="bg-amber-50 border border-amber-100 rounded-lg px-3 py-1.5 flex items-center gap-3 text-amber-700">
+        <div class="flex items-center gap-1.5">
+          <i data-lucide="bookmark" class="h-3.5 w-3.5"></i>
+          <span>Cần xem lại:</span>
+        </div>
+        <strong id="stat-flagged-count" class="font-mono">0</strong>
+      </div>
+    </div>
+
+    <!-- MAIN INTERACTION ACTIONS -->
+    <div class="flex items-center space-x-3">
+      <button onclick="quizMode.start()" class="flex items-center gap-1.5 px-3 py-2 text-xs font-semibold text-slate-700 hover:text-slate-900 bg-slate-100 hover:bg-slate-200 border border-slate-200 rounded-lg transition-all cursor-pointer">
+        <i data-lucide="zap" class="h-3.5 w-3.5 text-amber-500"></i>
+        <span>Luyện Tập Tốc Độ</span>
+      </button>
+      <button onclick="modal.open('add-session-modal')" class="flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg shadow-sm shadow-indigo-600/10 transition-all cursor-pointer">
+        <i data-lucide="calendar" class="h-3.5 w-3.5"></i>
+        <span>Thêm Buổi Học</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- COLLAPSIBLE BACKUP TOOLBAR -->
+  <section id="backup-toolbar" class="bg-slate-100/60 border-b border-slate-200 px-6 py-3 flex flex-wrap gap-4 items-center justify-between text-xs">
+    <div class="flex items-center space-x-4">
+      <span class="text-slate-500 font-medium flex items-center gap-1"><i data-lucide="database" class="h-3.5 w-3.5"></i> Đồng bộ & Sao lưu:</span>
+      <div class="flex items-center space-x-2">
+        <input type="file" id="import-excel-file" accept=".xlsx,.xls,.csv" class="hidden" onchange="backup.importExcel(event)" />
+        <button onclick="document.getElementById('import-excel-file').click()" class="bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 px-2.5 py-1.5 rounded flex items-center gap-1 cursor-pointer">
+          <i data-lucide="file-spreadsheet" class="h-3 w-3 text-emerald-600"></i> Nhập từ Excel / CSV
+        </button>
+        <button onclick="backup.exportTemplate()" class="bg-white hover:bg-slate-50 border border-slate-200 text-slate-600 px-2.5 py-1.5 rounded flex items-center gap-1 cursor-pointer">
+          <i data-lucide="download" class="h-3 w-3"></i> Tải Mẫu Excel PMP
+        </button>
+      </div>
+    </div>
+    
+    <div class="flex items-center space-x-3">
+      <button onclick="backup.downloadJSON()" class="text-indigo-600 hover:text-indigo-700 font-semibold flex items-center gap-1 cursor-pointer">
+        <i data-lucide="download" class="h-3 w-3"></i> Tải File Sao Lưu (.JSON)
+      </button>
+      <span class="text-slate-300">|</span>
+      <input type="file" id="import-json-file" accept=".json" class="hidden" onchange="backup.importJSON(event)" />
+      <button onclick="document.getElementById('import-json-file').click()" class="text-indigo-600 hover:text-indigo-700 font-semibold flex items-center gap-1 cursor-pointer">
+        <i data-lucide="upload" class="h-3 w-3"></i> Tải Lên File Sao Lưu (.JSON)
+      </button>
+    </div>
+  </section>
+
+  <!-- APPLICATION CORE WINDOW -->
+  <main class="flex-1 max-w-[1700px] w-full mx-auto px-6 py-6 grid grid-cols-1 lg:grid-cols-12 gap-6 items-start h-[calc(100vh-140px)] overflow-hidden">
+    
+    <!-- LEFT SIDEBAR: SESSIONS & QUESTION DIRECTORY (lg:col-span-4) -->
+    <aside class="lg:col-span-4 flex flex-col h-full bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
+      
+      <!-- Session and Filtering top controller -->
+      <div class="p-4 border-b border-slate-200 space-y-4">
+        <div class="flex items-center justify-between">
+          <label class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Buổi học hiện tại</label>
+          <button onclick="app.deleteSelectedSession()" class="text-xs text-rose-500 hover:text-rose-600 font-semibold flex items-center gap-1 cursor-pointer">
+            <i data-lucide="trash-2" class="h-3 w-3"></i> Xóa buổi học này
+          </button>
+        </div>
+        
+        <select id="session-select" onchange="app.selectSession(this.value)" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-sm font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+          <option value="">-- Chưa có buổi học nào --</option>
+        </select>
+        
+        <div class="p-3 bg-indigo-50/50 rounded-lg border border-indigo-100/50 flex flex-col gap-1 text-[11px]">
+          <div class="flex justify-between text-slate-500 font-medium">
+            <span>Ngày học:</span>
+            <span id="label-session-date" class="font-mono text-slate-700">--/--/----</span>
+          </div>
+          <div class="text-slate-500 font-medium">
+            <span>Ghi chú:</span>
+            <p id="label-session-notes" class="text-slate-700 font-semibold mt-0.5 whitespace-normal line-clamp-2">--</p>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Search & Filters in directory -->
+      <div class="px-4 py-3 bg-slate-50/50 border-b border-slate-200 flex flex-col gap-2.5">
+        <div class="relative">
+          <i data-lucide="search" class="absolute left-3 top-3 h-4 w-4 text-slate-400"></i>
+          <input type="text" id="filter-search" oninput="app.triggerFilter()" placeholder="Tìm kiếm đề bài hoặc bài học..." class="w-full pl-9 pr-4 py-2 text-xs bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+        </div>
+        
+        <div class="grid grid-cols-2 gap-2">
+          <select id="filter-domain" onchange="app.triggerFilter()" class="bg-white border border-slate-200 rounded-lg p-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            <option value="All">Tất cả Vùng kiến thức</option>
+            <option value="Process">Process (Quy trình)</option>
+            <option value="People">People (Con người)</option>
+            <option value="Business Environment">Business Env.</option>
+            <option value="Agile / Scrum Mindset">Agile / Scrum</option>
+            <option value="Hybrid">Hybrid (Lai)</option>
+            <option value="Other">Khác</option>
+          </select>
+          
+          <select id="filter-status" onchange="app.triggerFilter()" class="bg-white border border-slate-200 rounded-lg p-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            <option value="All">Tất cả Trạng thái</option>
+            <option value="Correct">Trả lời Đúng ✅</option>
+            <option value="Wrong">Trả lời Sai ❌</option>
+            <option value="Flagged">Cần Xem Lại 🚩</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Directory List wrapper -->
+      <div class="flex-1 overflow-y-auto divide-y divide-slate-100 no-scrollbar" id="question-list-container">
+        <!-- Inside here we populate rendered Questions list -->
+        <div class="py-8 text-center text-slate-400 text-xs">
+          <i data-lucide="help-circle" class="h-8 w-8 mx-auto mb-2 text-slate-300"></i>
+          Chưa có câu hỏi sai nào trong buổi học này
+        </div>
+      </div>
+      
+      <!-- List Footer -->
+      <div class="p-3 bg-slate-50 border-t border-slate-200 flex gap-2">
+        <button onclick="app.openAddForm()" class="flex-1 bg-slate-800 text-white cursor-pointer hover:bg-slate-900 transition-all text-xs font-semibold py-2.5 rounded-lg flex items-center justify-center gap-1.5">
+          <i data-lucide="plus-circle" class="h-4 w-4"></i> Thêm Lỗi Sai Mới
+        </button>
+      </div>
+    </aside>
+
+    <!-- RIGHT SPLIT MODULE: QUESTION DETAIL DEEP DIVE & EDIT SHEET (lg:col-span-8) -->
+    <section class="lg:col-span-8 h-full bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm flex flex-col">
+      <div class="flex-1 overflow-y-auto no-scrollbar p-6 space-y-6" id="right-view-container">
+        <!-- Interactive Views are mounted dynamically here -->
+      </div>
+    </section>
+  </main>
+
+  <!-- MODAL DIALOG: ADD SESSION -->
+  <div id="add-session-modal" class="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center hidden">
+    <div class="bg-white w-full max-w-md rounded-xl shadow-xl overflow-hidden border border-slate-100 transition-all-300">
+      <div class="bg-slate-900 px-6 py-4 flex items-center justify-between text-white">
+        <h3 class="font-display font-bold text-base flex items-center gap-1.5"><i data-lucide="calendar" class="h-4 w-4"></i> Thêm Buổi Học Mới</h3>
+        <button onclick="modal.close('add-session-modal')" class="text-slate-400 hover:text-white cursor-pointer"><i data-lucide="x" class="h-5 w-5"></i></button>
+      </div>
+      <div class="p-6 space-y-4">
+        <div>
+          <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">Tên buổi học / Ngày</label>
+          <input type="text" id="modal-session-title" placeholder="Ví dụ: Luyện đề PrepCast #1, Ngày lỗi sai 14/06" class="w-full p-2.5 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 font-semibold" />
+        </div>
+        <div>
+          <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">Ngày diễn ra</label>
+          <input type="date" id="modal-session-date" class="w-full p-2.5 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 font-mono" />
+        </div>
+        <div>
+          <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">Ghi chú bổ sung</label>
+          <textarea id="modal-session-notes" rows="3" placeholder="Ví dụ: Tập trung phần Agile Mindset, chú ý Change Request bẫy liên tiếp..." class="w-full p-2.5 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"></textarea>
+        </div>
+        <div class="flex gap-3 justify-end pt-2">
+          <button onclick="modal.close('add-session-modal')" class="bg-slate-100 hover:bg-slate-200 hover:text-slate-900 border border-slate-200 text-slate-600 px-4 py-2 rounded-lg text-xs font-bold cursor-pointer">Hủy</button>
+          <button onclick="app.submitNewSession()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2 rounded-lg text-xs font-bold cursor-pointer">Tạo mới</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FLOATING TOAST NOTIFICATION -->
+  <div id="toast-notification" class="fixed bottom-6 right-6 z-50 transform translate-y-12 opacity-0 pointer-events-none bg-slate-900 text-white rounded-lg px-4 py-3 flex items-center gap-2 shadow-lg max-w-sm border border-slate-800 text-xs font-medium">
+    <i data-lucide="info" class="h-4 w-4 text-emerald-400" id="toast-icon"></i>
+    <span id="toast-message">Thông báo hệ thống</span>
+  </div>
+
+  <!-- VANILLA JAVASCRIPT STATE ENGINE & CORE CONTROLLERS -->
+  <script>
+    // Global Application State Models
+    let state = {
+      sessions: [],
+      selectedSessionId: "",
+      selectedQuestionId: null,
+      searchQuery: "",
+      domainFilter: "All",
+      statusFilter: "All",
+      aiAdviceCache: {},
+      isSaving: false
+    };
+
+    // 10-Question Flashcard Quiz State
+    let quizState = {
+      isActive: false,
+      questions: [],
+      currentIndex: 0,
+      userAnswers: {}, // key by index: value 'A'/'B'/'C'/'D'
+      isAnswerChecked: false
+    };
+
+    // Helper: Display system toast feedback
+    function showToast(message, isSuccess = true) {
+      const toast = document.getElementById("toast-notification");
+      const icon = document.getElementById("toast-icon");
+      const text = document.getElementById("toast-message");
+      
+      text.textContent = message;
+      if (isSuccess) {
+        icon.setAttribute("data-lucide", "check-circle-2");
+        icon.className = "h-4 w-4 text-emerald-400";
+      } else {
+        icon.setAttribute("data-lucide", "alert-triangle");
+        icon.className = "h-4 w-4 text-rose-400";
+      }
+      lucide.createIcons();
+      
+      toast.classList.remove("opacity-0", "translate-y-12", "pointer-events-none");
+      setTimeout(() => {
+        toast.classList.add("opacity-0", "translate-y-12", "pointer-events-none");
+      }, 4000);
+    }
+
+    // Modal Operations Interface
+    const modal = {
+      open: (id) => {
+        const m = document.getElementById(id);
+        m.classList.remove("hidden");
+        if (id === 'add-session-modal') {
+          document.getElementById('modal-session-title').value = "";
+          document.getElementById('modal-session-date').value = new Date().toISOString().split("T")[0];
+          document.getElementById('modal-session-notes').value = "";
+        }
+      },
+      close: (id) => {
+        document.getElementById(id).classList.add("hidden");
+      }
+    };
+
+    // REST Server / LocalStorage Sync Manager
+    const persistence = {
+      load: async () => {
+        try {
+          const res = await fetch("/api/pmp/sessions");
+          if (res.ok) {
+            const data = await res.json();
+            if (Array.isArray(data) && data.length > 0) {
+              return data;
+            }
+          }
+        } catch (e) {
+          console.warn("Backend server not available. Falling back to LocalStorage.");
+        }
+        
+        // Fallback to LocalStorage
+        try {
+          const raw = localStorage.getItem("pmp_sessions");
+          if (raw) return JSON.parse(raw);
+        } catch (e) {
+          console.error("Local storage read error:", e);
+        }
+        
+        // Inject 1 high-quality initial seed question to keep it descriptive with Vietnamese values
+        return [{
+          id: "session-seed-1",
+          title: "Buổi Luyện Đề Mẫu #1 - 3W-1L",
+          date: new Date().toISOString().split("T")[0],
+          notes: "Buổi sửa lỗi sai mẫu để làm quen với cấu trúc 3W1L và Cố vấn AI",
+          questions: [{
+            id: "q-seed-1",
+            stt: 1,
+            question: "During a project progress meeting, a stakeholder informs the team that a previously identified technical issue has been resolved. However, the stakeholder warns that the same issue is likely to happen on other, similar projects. What should the project manager do first?",
+            domain: "Process",
+            options: {
+              A: "Update the lessons learned register.",
+              B: "Communicate the warning to the project sponsor.",
+              C: "Update the issue log.",
+              D: "Prepare a risk report."
+            },
+            correctOption: "A",
+            userOption: "C",
+            explanation: "Tình huống nêu rõ vấn đề kỹ thuật ĐÃ được giải quyết xong, do đó không còn vấn đề mở nào để ghi nhận/cập nhật vào Issue Log nữa. Nhận định rủi ro của stakeholder liên quan đến các dự án tương tự khác trong tương lai, nghĩa là nó thuộc về tri thức tổ chức (organizational knowledge). Do đó, hành động chuẩn nhất là chia sẻ qua Lessons Learned Register.",
+            threeWOneL: {
+              what: "Tôi chọn nhầm 'Update the issue log' (C) thay vì phương án cập nhật Lessons Learned Register.",
+              why: "Thói quen máy móc cứ thấy báo cáo vấn đề kỹ thuật là chọn Issue log bẫy bản thân, mà quên mất từ khóa 'vấn đề ĐÃ được giải quyết xong' (resolved). Bị nhầm lẫn giữa công tác theo dõi vấn đề của dự án hiện tại với việc chia sẻ bài học rủi ro cho tương lai.",
+              action: "Độc lập phân loại: Khi status của issue đã chuyển thành 'Resolved' thì bỏ qua bước log issue mới. Tiếp cận bối cảnh 'các dự án khác' bằng Lessons Learned.",
+              lesson: "Vấn đề kỹ thuật đã đóng thì không cập nhật Issue Log. Rủi ro lan truyền cho các dự án tương tự được quản lý tối ưu thông qua Lessons Learned."
+            },
+            extension: "PMBOK 7th - Chapter on Project Work. Quy trình quản lý tri thức (Manage Project Knowledge) bao gồm cập nhật Lessons Learned liên tục sau khi xử lý thành công issue."
+          }]
+        }];
+      },
+      
+      save: async (sessions) => {
+        state.isSaving = true;
+        // Save to LocalStorage first
+        try {
+          localStorage.setItem("pmp_sessions", JSON.stringify(sessions));
+        } catch (e) {
+          console.error("Local storage write error:", e);
+        }
+        
+        // Try saving to backend
+        try {
+          await fetch("/api/pmp/sessions", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(sessions)
+          });
+        } catch (e) {
+          console.warn("Backend synchronization offline. Progress saved in browser locally.");
+        }
+        state.isSaving = false;
+        app.updateStats();
+      }
+    };
+
+    // Helper: Parse Options from stem if omitted in separate columns (Vietnamese + English Regex)
+    function extractOptionsFromQuestion(qText) {
+      const options = { A: "", B: "", C: "", D: "" };
+      const cleanText = qText.replace(/\r\n/g, "\n").replace(/\r/g, "\n").trim();
+      let cleanQuestion = cleanText;
+      
+      const findMarkerIndex = (char) => {
+        const rx = new RegExp(`(?:^|\\s|\\n|[\\(\\)\\[\\]\\*])(${char})[\\.\\)\\:\\-]\\s+`, 'i');
+        const match = cleanText.match(rx);
+        if (match && match.index !== undefined) {
+          return match.index + match[0].indexOf(match[1]);
+        }
+        return -1;
+      };
+
+      const idxA = findMarkerIndex('a');
+      const idxB = findMarkerIndex('b');
+      const idxC = findMarkerIndex('c');
+      const idxD = findMarkerIndex('d');
+
+      if (idxA !== -1 && idxB !== -1 && idxC !== -1 && idxD !== -1 && idxA < idxB && idxB < idxC && idxC < idxD) {
+        options.A = cleanText.substring(idxA + 2, idxB).replace(/^[\.\)\:\-\s\*]+/, '').trim();
+        options.B = cleanText.substring(idxB + 2, idxC).replace(/^[\.\)\:\-\s\*]+/, '').trim();
+        options.C = cleanText.substring(idxC + 2, idxD).replace(/^[\.\)\:\-\s\*]+/, '').trim();
+        options.D = cleanText.substring(idxD + 2).trim().replace(/^[\.\)\:\-\s\*]+/, '').trim();
+        cleanQuestion = cleanText.substring(0, idxA).trim();
+      } else {
+        const matches = Array.from(cleanText.matchAll(/(?:^|\n|\s|[(*])([a-dA-D])[\.\)\:\-]\s+/gi));
+        if (matches.length > 0) {
+          let firstOptIdx = cleanText.length;
+          matches.forEach(m => {
+            if (m.index !== undefined && m.index < firstOptIdx) firstOptIdx = m.index;
+          });
+          if (firstOptIdx < cleanText.length) {
+            cleanQuestion = cleanText.substring(0, firstOptIdx).trim();
+          }
+        }
+
+        const optMatches = Array.from(cleanText.matchAll(/(?:^|\n|\s|[(*])([a-dA-D])[\.\)\:\-]\s+([^\n\r]+)/gi));
+        optMatches.forEach(m => {
+          const key = m[1].toUpperCase();
+          const val = m[2].trim();
+          if (['A', 'B', 'C', 'D'].includes(key)) {
+            options[key] = val;
+          }
+        });
+      }
+
+      // Clean common interactive text triggers to keep things tidy
+      cleanQuestion = cleanQuestion
+        .replace(/\s*(?:select\s+one|chọn\s+một|choose\s+one|hãy\s+chọn|chon\s+mot)[\s\:\*\-!]*$/i, "")
+        .trim();
+
+      return {
+        options: {
+          A: options.A || "Option A",
+          B: options.B || "Option B",
+          C: options.C || "Option C",
+          D: options.D || "Option D"
+        },
+        cleanQuestion: cleanQuestion || cleanText
+      };
+    }
+
+    // Backup & Restore Engine
+    const backup = {
+      exportTemplate: () => {
+        try {
+          const headers = [
+            "STT", "Vùng Kiến Thức", "Câu Hỏi", 
+            "Phương Án A", "Phương Án B", "Phương Án C", "Phương Án D", 
+            "Đáp Án Đúng", "Lựa Chọn Của Bạn", "What - Sai Cái Gì", 
+            "Why - Tại Sao Nhầm", "Action - Sửa Ở Đâu", "Lesson - Bài Học Rút Ra", "Giải Thích"
+          ];
+          const sample = [
+            [1, "Process", "During a project progress meeting, a stakeholder informs the team that a previously identified technical issue has been resolved. However, the stakeholder warns that the same issue is likely to happen on other, similar projects. What should the project manager do first?", "Update the lessons learned register.", "Communicate the warning to the project sponsor.", "Update the issue log.", "Prepare a risk report.", "A", "C", "Tôi chọn nhầm 'Update the issue log' (C) trong khi vấn đề đã được giải quyết.", "Tôi nghĩ cứ có lỗi kỹ thuật là phải log.", "Khi issue đã giải quyết xong thì bỏ qua bước log.", "Rủi ro của các dự án khác quản lý bằng Lessons Learned.", "Vấn đề kỹ thuật đã đóng không cập nhật Issue Log."]
+          ];
+          const ws = XLSX.utils.aoa_to_sheet([headers, ...sample]);
+          const wb = XLSX.utils.book_new();
+          XLSX.utils.book_append_sheet(wb, ws, "Temp_Wrong_Log_PMP");
+          XLSX.writeFile(wb, "PMP_Loi_Sai_Template.xlsx");
+          showToast("Tải file mẫu Excel thành công!");
+        } catch (e) {
+          alert("Lỗi tải template: " + e.message);
+        }
+      },
+
+      importExcel: (e) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = async (evt) => {
+          try {
+            const raw = evt.target?.result;
+            if (!raw) return;
+
+            const workbook = XLSX.read(raw, { type: "binary" });
+            const sheet = workbook.Sheets[workbook.SheetNames[0]];
+            const jsonData = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+            
+            if (jsonData.length < 2) {
+              alert("File Excel trống hoặc không chứa dòng dữ liệu nào hợp lệ.");
+              return;
+            }
+
+            const headers = jsonData[0].map(h => String(h || "").trim().toLowerCase());
+            const getIndex = (aliases) => {
+              return headers.findIndex(h => aliases.some(alias => {
+                if (["a", "b", "c", "d"].includes(alias)) {
+                  return h === alias || h === alias + "." || h === alias + ":" || h === alias + ")" || h === "(" + alias + ")" || h.startsWith(alias + " ");
+                }
+                return h.includes(alias);
+              }));
+            };
+
+            const idxStt = getIndex(["stt", "thực tự", "id", "index", "no."]);
+            const idxQuestion = getIndex(["câu hỏi", "cau hoi", "question", "đề bài", "de bai", "stem"]);
+            const idxDomain = getIndex(["domain", "vùng kiến thức", "vung kien thuc", "nhóm", "phân loại"]);
+            const idxA = getIndex(["a", "phương án a", "p/á a", "option a", "choice a", "phuong an a"]);
+            const idxB = getIndex(["b", "phương án b", "p/á b", "option b", "choice b", "phuong an b"]);
+            const idxC = getIndex(["c", "phương án c", "p/á c", "option c", "choice c", "phuong an c"]);
+            const idxD = getIndex(["d", "phương án d", "p/á d", "option d", "choice d", "phuong an d"]);
+            const idxCorrect = getIndex(["đáp án đúng", "dap an dung", "correct", "key", "đáp án chính xác", "đúng", "correct option", "correct answer"]);
+            const idxUser = getIndex(["lựa chọn của bạn", "lua chon cua ban", "phương án chọn", "user option", "đáp án của bạn", "chọn", "ban chon", "bạn chọn"]);
+            const idxWhat = getIndex(["what", "lỗi sai gì", "loi sai gi", "sai sót", "sai gi"]);
+            const idxWhy = getIndex(["why", "tại sao nhầm", "tai sao nham", "lý do sai", "nguyên nhân", "nguyen nhan"]);
+            const idxAction = getIndex(["where", "action", "hành động sửa", "hanh dong sua", "khắc phục", "hanh dong", "sửa ở đâu", "sua o dau"]);
+            const idxLesson = getIndex(["lesson", "bài học", "bai hoc", "rút ra", "dung mang", "lesson learn"]);
+            const idxNote = getIndex(["giải thích", "giai thich", "mở rộng", "mo rong", "comment", "ghi chú", "note", "explanation", "explaination", "chi tiet"]);
+
+            if (idxQuestion === -1) {
+              alert("Không thể khớp cột chứa 'Câu Hỏi' hay 'Question'. Hãy kiểm tra file.");
+              return;
+            }
+
+            const metadataIndices = [idxStt, idxQuestion, idxDomain, idxCorrect, idxUser, idxWhat, idxWhy, idxAction, idxLesson, idxNote].filter(idx => idx !== -1);
+            let cleanIdxA = idxA;
+            let cleanIdxB = idxB;
+            let cleanIdxC = idxC;
+            let cleanIdxD = idxD;
+
+            if (metadataIndices.includes(cleanIdxA)) cleanIdxA = -1;
+            if (metadataIndices.includes(cleanIdxB)) cleanIdxB = -1;
+            if (metadataIndices.includes(cleanIdxC)) cleanIdxC = -1;
+            if (metadataIndices.includes(cleanIdxD)) cleanIdxD = -1;
+
+            const newQuestions = [];
+            for (let i = 1; i < jsonData.length; i++) {
+              const row = jsonData[i];
+              if (!row || row.length === 0 || !row[idxQuestion]) continue;
+
+              const getValue = (idx, def = "") => {
+                if (idx !== -1 && row[idx] !== undefined && row[idx] !== null) {
+                  return String(row[idx]).trim();
+                }
+                return def;
+              };
+
+              const sttVal = idxStt !== -1 && row[idxStt] !== undefined ? Number(row[idxStt]) : i;
+              const qText = String(row[idxQuestion]).trim();
+              const domainVal = getValue(idxDomain, "Process");
+
+              const extracted = extractOptionsFromQuestion(qText);
+              const hasExtractedOptions = (
+                extracted.options.A !== "Option A" &&
+                extracted.options.B !== "Option B" &&
+                extracted.options.C !== "Option C" &&
+                extracted.options.D !== "Option D"
+              );
+
+              let optionA = "", optionB = "", optionC = "", optionD = "";
+              if (hasExtractedOptions) {
+                optionA = extracted.options.A;
+                optionB = extracted.options.B;
+                optionC = extracted.options.C;
+                optionD = extracted.options.D;
+              } else {
+                optionA = getValue(cleanIdxA, "Option A");
+                optionB = getValue(cleanIdxB, "Option B");
+                optionC = getValue(cleanIdxC, "Option C");
+                optionD = getValue(cleanIdxD, "Option D");
+              }
+
+              let correctOpt = getValue(idxCorrect, "").toUpperCase();
+              if (correctOpt.includes("A")) correctOpt = "A";
+              else if (correctOpt.includes("B")) correctOpt = "B";
+              else if (correctOpt.includes("C")) correctOpt = "C";
+              else if (correctOpt.includes("D")) correctOpt = "D";
+              else correctOpt = "";
+
+              let userOpt = getValue(idxUser, "").toUpperCase();
+              if (userOpt.includes("A")) userOpt = "A";
+              else if (userOpt.includes("B")) userOpt = "B";
+              else if (userOpt.includes("C")) userOpt = "C";
+              else if (userOpt.includes("D")) userOpt = "D";
+              else userOpt = "";
+
+              newQuestions.push({
+                id: "q-excel-" + Date.now() + "-" + i,
+                stt: sttVal,
+                question: hasExtractedOptions ? extracted.cleanQuestion : qText,
+                options: { A: optionA, B: optionB, C: optionC, D: optionD },
+                correctOption: correctOpt,
+                userOption: userOpt,
+                domain: domainVal,
+                explanation: getValue(idxNote, ""),
+                extension: "",
+                threeWOneL: {
+                  what: getValue(idxWhat, ""),
+                  why: getValue(idxWhy, ""),
+                  action: getValue(idxAction, ""),
+                  lesson: getValue(idxLesson, "")
+                }
+              });
+            }
+
+            if (newQuestions.length === 0) {
+              alert("Không lọc được cấu trúc câu hỏi sai nào từ Excel.");
+              return;
+            }
+
+            // Append questions to current session of App or create a new session named after file
+            const uploadSessionName = file.name.replace(/\.[^/.]+$/, "") + " Import";
+            const sessionObj = {
+              id: "session-" + Date.now(),
+              title: uploadSessionName,
+              date: new Date().toISOString().split("T")[0],
+              notes: "Buổi học được thiết lập tự động bằng file Excel nhập liệu.",
+              questions: newQuestions
+            };
+
+            state.sessions.push(sessionObj);
+            state.selectedSessionId = sessionObj.id;
+            state.selectedQuestionId = sessionObj.questions[0].id;
+            
+            await persistence.save(state.sessions);
+            app.renderSidebarSelector();
+            app.renderQuestionsDirectory();
+            app.selectQuestion(state.selectedQuestionId);
+            
+            showToast(`Đã import thành công ${newQuestions.length} câu hỏi!`);
+            e.target.value = ""; // Clear file picker
+          } catch (err) {
+            alert("Lỗi đọc file Excel: " + err.message);
+          }
+        };
+        reader.readAsBinaryString(file);
+      },
+
+      downloadJSON: () => {
+        const str = JSON.stringify(state.sessions, null, 2);
+        const blob = new Blob([str], { type: "application/json" });
+        const a = document.createElement("a");
+        a.href = URL.createObjectURL(blob);
+        a.download = `PMP_3W1L_Backup_${new Date().toISOString().split("T")[0]}.json`;
+        a.click();
+        showToast("Tải tệp JSON dự phòng thành công!");
+      },
+
+      importJSON: (e) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = async (evt) => {
+          try {
+            const data = JSON.parse(evt.target.result);
+            if (!Array.isArray(data)) throw new Error("Cấu trúc file sao lưu phải là Array chứa các Session.");
+            state.sessions = data;
+            if (data.length > 0) {
+              state.selectedSessionId = data[0].id;
+              if (data[0].questions.length > 0) {
+                state.selectedQuestionId = data[0].questions[0].id;
+              }
+            }
+            await persistence.save(state.sessions);
+            app.renderSidebarSelector();
+            app.renderQuestionsDirectory();
+            if (state.selectedQuestionId) {
+              app.selectQuestion(state.selectedQuestionId);
+            }
+            showToast("Đã nhập toàn bộ dữ liệu sao lưu thành công!");
+          } catch (err) {
+            alert("Nhập file thất bại: " + err.message);
+          }
+          e.target.value = "";
+        };
+        reader.readAsText(file);
+      }
+    };
+
+    // Main Application Render Loop Controller
+    const app = {
+      init: async () => {
+        state.sessions = await persistence.load();
+        if (state.sessions.length > 0) {
+          state.selectedSessionId = state.sessions[0].id;
+          const questions = state.sessions[0].questions;
+          if (questions && questions.length > 0) {
+            state.selectedQuestionId = questions[0].id;
+          }
+        }
+        
+        app.renderSidebarSelector();
+        app.renderQuestionsDirectory();
+        app.updateStats();
+        
+        if (state.selectedQuestionId) {
+          app.selectQuestion(state.selectedQuestionId);
+        } else {
+          app.renderEmptyState();
+        }
+        lucide.createIcons();
+      },
+
+      updateStats: () => {
+        let sc = 0, wc = 0, fc = 0;
+        state.sessions.forEach(s => {
+          s.questions.forEach(q => {
+            if (q.userOption === q.correctOption && q.correctOption !== "") sc++;
+            else if (q.userOption !== "") wc++;
+            if (q.isFlagged) fc++;
+          });
+        });
+        document.getElementById("stat-sessions-count").textContent = state.sessions.length;
+        document.getElementById("stat-correct-count").textContent = sc;
+        document.getElementById("stat-wrong-count").textContent = wc;
+        document.getElementById("stat-flagged-count").textContent = fc;
+      },
+
+      getCurrentSession: () => {
+        return state.sessions.find(s => s.id === state.selectedSessionId);
+      },
+
+      getCurrentQuestion: () => {
+        const ses = app.getCurrentSession();
+        if (!ses) return null;
+        return ses.questions.find(q => q.id === state.selectedQuestionId);
+      },
+
+      renderSidebarSelector: () => {
+        const sel = document.getElementById("session-select");
+        sel.innerHTML = "";
+        
+        if (state.sessions.length === 0) {
+          sel.innerHTML = '<option value="">-- Chưa có buổi học nào --</option>';
+          document.getElementById("label-session-date").textContent = "--/--/----";
+          document.getElementById("label-session-notes").textContent = "--";
+          return;
+        }
+
+        state.sessions.forEach(s => {
+          const opt = document.createElement("option");
+          opt.value = s.id;
+          opt.textContent = `${s.title} (${s.questions.length} câu sai)`;
+          if (s.id === state.selectedSessionId) opt.selected = true;
+          sel.appendChild(opt);
+        });
+
+        const active = app.getCurrentSession();
+        if (active) {
+          document.getElementById("label-session-date").textContent = active.date;
+          document.getElementById("label-session-notes").textContent = active.notes || "Không có ghi chú";
+        }
+      },
+
+      selectSession: (id) => {
+        state.selectedSessionId = id;
+        const ses = app.getCurrentSession();
+        state.selectedQuestionId = (ses && ses.questions.length > 0) ? ses.questions[0].id : null;
+        
+        app.renderSidebarSelector();
+        app.renderQuestionsDirectory();
+        
+        if (state.selectedQuestionId) {
+          app.selectQuestion(state.selectedQuestionId);
+        } else {
+          app.renderEmptyState();
+        }
+      },
+
+      submitNewSession: async () => {
+        const title = document.getElementById("modal-session-title").value.trim();
+        const date = document.getElementById("modal-session-date").value;
+        const notes = document.getElementById("modal-session-notes").value.trim();
+
+        if (!title) {
+          alert("Vui lòng điền tên Buổi học");
+          return;
+        }
+
+        const newS = {
+          id: "session-" + Date.now(),
+          title: title,
+          date: date || new Date().toISOString().split("T")[0],
+          notes: notes,
+          questions: []
+        };
+
+        state.sessions.push(newS);
+        state.selectedSessionId = newS.id;
+        state.selectedQuestionId = null;
+
+        await persistence.save(state.sessions);
+        app.renderSidebarSelector();
+        app.renderQuestionsDirectory();
+        app.renderEmptyState();
+        modal.close("add-session-modal");
+        showToast("Tạo buổi học sai PMP mới thành công!");
+      },
+
+      deleteSelectedSession: async () => {
+        if (state.sessions.length === 0) return;
+        if (!confirm("Bạn có chắc chắn muốn xóa vĩnh viễn toàn bộ buổi học này không?")) return;
+
+        state.sessions = state.sessions.filter(s => s.id !== state.selectedSessionId);
+        state.selectedSessionId = state.sessions.length > 0 ? state.sessions[0].id : "";
+        const ses = app.getCurrentSession();
+        state.selectedQuestionId = (ses && ses.questions.length > 0) ? ses.questions[0].id : null;
+
+        await persistence.save(state.sessions);
+        app.renderSidebarSelector();
+        app.renderQuestionsDirectory();
+        if (state.selectedQuestionId) {
+          app.selectQuestion(state.selectedQuestionId);
+        } else {
+          app.renderEmptyState();
+        }
+        showToast("Đã xóa buổi học sầm uất.");
+      },
+
+      triggerFilter: () => {
+        state.searchQuery = document.getElementById("filter-search").value.trim().toLowerCase();
+        state.domainFilter = document.getElementById("filter-domain").value;
+        state.statusFilter = document.getElementById("filter-status").value;
+        app.renderQuestionsDirectory();
+      },
+
+      renderQuestionsDirectory: () => {
+        const container = document.getElementById("question-list-container");
+        container.innerHTML = "";
+
+        const ses = app.getCurrentSession();
+        if (!ses || ses.questions.length === 0) {
+          container.innerHTML = `
+            <div class="py-8 text-center text-slate-400 text-xs">
+              <i data-lucide="help-circle" class="h-8 w-8 mx-auto mb-2 text-slate-300"></i>
+              Chưa ghim lỗi sai nào cho buổi này. Click nút dưới để Thêm!
+            </div>
+          `;
+          lucide.createIcons();
+          return;
+        }
+
+        let filtered = ses.questions.filter(q => {
+          // Search query
+          const matchQuery = !state.searchQuery || 
+                             q.question.toLowerCase().includes(state.searchQuery) ||
+                             (q.threeWOneL.lesson && q.threeWOneL.lesson.toLowerCase().includes(state.searchQuery)) ||
+                             (q.threeWOneL.why && q.threeWOneL.why.toLowerCase().includes(state.searchQuery)) ||
+                             (q.explanation && q.explanation.toLowerCase().includes(state.searchQuery));
+          
+          // Domain
+          const matchDomain = state.domainFilter === "All" || q.domain === state.domainFilter;
+
+          // Status Filter
+          let matchStatus = true;
+          if (state.statusFilter === "Correct") {
+            matchStatus = q.userOption === q.correctOption && q.correctOption !== "";
+          } else if (state.statusFilter === "Wrong") {
+            matchStatus = q.userOption !== q.correctOption && q.userOption !== "";
+          } else if (state.statusFilter === "Flagged") {
+            matchStatus = !!q.isFlagged;
+          }
+
+          return matchQuery && matchDomain && matchStatus;
+        });
+
+        if (filtered.length === 0) {
+          container.innerHTML = `
+            <div class="py-8 text-center text-slate-400 text-xs font-medium">
+              Không tìm thấy câu hỏi sai nào khớp yêu cầu lọc.
+            </div>
+          `;
+          return;
+        }
+
+        filtered.forEach(q => {
+          const item = document.createElement("div");
+          const isActive = q.id === state.selectedQuestionId;
+          const isCorrect = q.userOption === q.correctOption && q.correctOption !== "";
+          
+          item.className = `p-4 hover:bg-slate-50 border-b border-slate-100 transition-all cursor-pointer flex gap-3 ${isActive ? 'bg-indigo-50/50 outline-2 outline-indigo-500/10' : ''}`;
+          item.onclick = () => app.selectQuestion(q.id);
+
+          let statusIcon = '<span class="text-rose-500 font-bold">❌</span>';
+          if (isCorrect) statusIcon = '<span class="text-emerald-500 font-bold">✅</span>';
+          if (q.isFlagged) {
+            statusIcon += ' <span class="text-amber-500 text-[10px]">🚩</span>';
+          }
+
+          item.innerHTML = `
+            <div class="flex-1 space-y-1">
+              <div class="flex items-center justify-between text-[11px] font-mono">
+                <span class="text-slate-400 font-semibold">STT: #${q.stt}</span>
+                <span class="px-2 py-0.5 rounded bg-slate-100 text-slate-600 font-medium">${q.domain}</span>
+              </div>
+              <p class="text-[12px] font-medium text-slate-800 line-clamp-2">${q.question}</p>
+              ${q.threeWOneL.lesson ? `<p class="text-[10px] italic text-rose-600 font-medium truncate">Lesson: ${q.threeWOneL.lesson}</p>` : ''}
+            </div>
+            <div class="flex flex-col items-end justify-between min-w-[32px]">
+              <div>${statusIcon}</div>
+            </div>
+          `;
+          container.appendChild(item);
+        });
+        lucide.createIcons();
+      },
+
+      selectQuestion: (id) => {
+        state.selectedQuestionId = id;
+        app.renderQuestionsDirectory();
+        
+        const q = app.getCurrentQuestion();
+        if (q) {
+          app.renderQuestionDetail(q);
+        } else {
+          app.renderEmptyState();
+        }
+      },
+
+      toggleFlagActiveQuestion: async (id) => {
+        const q = app.getCurrentQuestion();
+        if (q) {
+          q.isFlagged = !q.isFlagged;
+          await persistence.save(state.sessions);
+          app.renderQuestionsDirectory();
+          app.selectQuestion(id);
+        }
+      },
+
+      deleteActiveQuestion: async () => {
+        const ses = app.getCurrentSession();
+        if (!ses || !state.selectedQuestionId) return;
+        if (!confirm("Xóa lỗi sai này khỏi sổ tay?")) return;
+
+        ses.questions = ses.questions.filter(q => q.id !== state.selectedQuestionId);
+        state.selectedQuestionId = ses.questions.length > 0 ? ses.questions[0].id : null;
+
+        await persistence.save(state.sessions);
+        app.renderQuestionsDirectory();
+        if (state.selectedQuestionId) {
+          app.selectQuestion(state.selectedQuestionId);
+        } else {
+          app.renderEmptyState();
+        }
+        showToast("Đã xóa câu hỏi sai khỏi log book.");
+      },
+
+      renderEmptyState: () => {
+        const dest = document.getElementById("right-view-container");
+        dest.innerHTML = `
+          <div class="h-full flex flex-col items-center justify-center p-12 text-center text-slate-400">
+            <div class="h-16 w-16 bg-slate-100 rounded-full flex items-center justify-center mb-4">
+              <i data-lucide="book-open" class="h-8 w-8 text-slate-300"></i>
+            </div>
+            <h4 class="font-display font-bold text-slate-700 mb-1">Chưa chọn Lỗi Sai PMP nào</h4>
+            <p class="text-xs max-w-sm">Chọn một câu hỏi rèn luyện bên trái, hoặc nhấn "Thêm Lỗi Sai Mới" để ghi chép lại lỗ hổng tư duy!</p>
+          </div>
+        `;
+        lucide.createIcons();
+      },
+
+      renderQuestionDetail: (q) => {
+        const dest = document.getElementById("right-view-container");
+        const optA_correct = q.correctOption === "A";
+        const optB_correct = q.correctOption === "B";
+        const optC_correct = q.correctOption === "C";
+        const optD_correct = q.correctOption === "D";
+
+        const optA_user = q.userOption === "A";
+        const optB_user = q.userOption === "B";
+        const optC_user = q.userOption === "C";
+        const optD_user = q.userOption === "D";
+
+        const getOptionClass = (isCorrect, isUser) => {
+          if (isCorrect) return "border-emerald-500 bg-emerald-500/5 text-slate-800 ring-1 ring-emerald-500";
+          if (isUser) return "border-rose-300 bg-rose-500/5 text-slate-800 ring-1 ring-rose-500/10";
+          return "border-slate-200 bg-white hover:border-slate-300";
+        };
+
+        const getOptionIcon = (isCorrect, isUser) => {
+          if (isCorrect) return '<span class="h-5 w-5 rounded-full bg-emerald-500 flex items-center justify-center text-white text-[11px] font-bold">✓</span>';
+          if (isUser) return '<span class="h-5 w-5 rounded-full bg-rose-500 flex items-center justify-center text-white text-[11px] font-bold">✗</span>';
+          return '<span class="h-5 w-5 rounded-full border border-slate-300 flex items-center justify-center text-slate-500 text-[10px] font-mono font-medium">A</span>';
+        };
+
+        dest.innerHTML = `
+          <!-- Header and controls -->
+          <div class="flex items-center justify-between border-b border-slate-100 pb-4">
+            <div class="flex items-center gap-3">
+              <span class="px-2.5 py-1 text-xs font-bold bg-indigo-50 border border-indigo-100 text-indigo-700 rounded-full">${q.domain}</span>
+              <span class="text-xs font-mono font-bold text-slate-400">STT: #${q.stt}</span>
+            </div>
+            <div class="flex items-center space-x-2">
+              <button onclick="app.toggleFlagActiveQuestion('${q.id}')" class="p-2 cursor-pointer rounded-lg text-slate-500 hover:text-amber-500 hover:bg-slate-50 flex items-center gap-1.5 text-xs font-medium border border-slate-100" title="Đánh dấu cần xem lại">
+                <i data-lucide="bookmark" class="h-4 w-4 ${q.isFlagged ? 'fill-amber-400 text-amber-500' : ''}"></i>
+                <span>${q.isFlagged ? 'Đã Ghim' : 'Ghim Lại'}</span>
+              </button>
+              <button onclick="app.openEditForm('${q.id}')" class="p-2 cursor-pointer rounded-lg text-slate-600 hover:text-indigo-600 hover:bg-indigo-50 border border-slate-100 flex items-center gap-1 text-xs font-bold">
+                <i data-lucide="edit-2" class="h-4 w-4"></i> Sửa
+              </button>
+              <button onclick="app.deleteActiveQuestion()" class="p-2 cursor-pointer rounded-lg text-rose-500 hover:bg-rose-50 hover:border-rose-100 border border-transparent flex items-center gap-1 text-xs font-medium">
+                <i data-lucide="trash-2" class="h-4 w-4"></i> Xóa
+              </button>
+            </div>
+          </div>
+
+          <!-- Question Stem -->
+          <div class="space-y-2">
+            <h3 class="text-slate-800 font-semibold text-sm leading-relaxed whitespace-pre-line">${q.question}</h3>
+          </div>
+
+          <!-- Question Options Card Matrix -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-3.5 pt-1">
+            <div class="border rounded-xl p-3.5 text-xs font-medium transition-all flex items-center gap-3 ${getOptionClass(optA_correct, optA_user)}">
+              <div class="shrink-0">${getOptionIcon(optA_correct, optA_user).replace(/>[A]/, ">A")}</div>
+              <span>${q.options.A || "Option A"}</span>
+            </div>
+            <div class="border rounded-xl p-3.5 text-xs font-medium transition-all flex items-center gap-3 ${getOptionClass(optB_correct, optB_user)}">
+              <div class="shrink-0">${getOptionIcon(optB_correct, optB_user).replace(/>[A]/, ">B")}</div>
+              <span>${q.options.B || "Option B"}</span>
+            </div>
+            <div class="border rounded-xl p-3.5 text-xs font-medium transition-all flex items-center gap-3 ${getOptionClass(optC_correct, optC_user)}">
+              <div class="shrink-0">${getOptionIcon(optC_correct, optC_user).replace(/>[A]/, ">C")}</div>
+              <span>${q.options.C || "Option C"}</span>
+            </div>
+            <div class="border rounded-xl p-3.5 text-xs font-medium transition-all flex items-center gap-3 ${getOptionClass(optD_correct, optD_user)}">
+              <div class="shrink-0">${getOptionIcon(optD_correct, optD_user).replace(/>[A]/, ">D")}</div>
+              <span>${q.options.D || "Option D"}</span>
+            </div>
+          </div>
+
+          <!-- 3W-1L EXCLUSIVE GRID CARD -->
+          <div class="space-y-2.5">
+            <h4 class="text-[11px] font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1"><i data-lucide="award" class="h-4 w-4 text-indigo-500"></i> Mô Hình Khắc Phục Tư Duy Lỗi 3W-1L</h4>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <!-- WHAT -->
+              <div class="bg-rose-50/70 border border-rose-100 rounded-xl p-4 space-y-1">
+                <span class="text-[10px] font-mono font-bold text-rose-500 uppercase tracking-wider flex items-center gap-1"><i data-lucide="x-circle" class="h-3.5 w-3.5"></i> WHAT (Sai cái gì)</span>
+                <p class="text-xs font-medium text-slate-700 leading-relaxed">${q.threeWOneL.what || "Không ghi"}</p>
+              </div>
+              <!-- WHY -->
+              <div class="bg-amber-50/70 border border-amber-100 rounded-xl p-4 space-y-1">
+                <span class="text-[10px] font-mono font-bold text-amber-500 uppercase tracking-wider flex items-center gap-1"><i data-lucide="help-circle" class="h-3.5 w-3.5"></i> WHY (Tại sao nhầm)</span>
+                <p class="text-xs font-medium text-slate-700 leading-relaxed">${q.threeWOneL.why || "Không ghi"}</p>
+              </div>
+              <!-- ACTION -->
+              <div class="bg-emerald-50/70 border border-emerald-100 rounded-xl p-4 space-y-1">
+                <span class="text-[10px] font-mono font-bold text-emerald-500 uppercase tracking-wider flex items-center gap-1"><i data-lucide="check-circle-2" class="h-3.5 w-3.5"></i> ACTION (Tư duy chuẩn)</span>
+                <p class="text-xs font-medium text-slate-700 leading-relaxed">${q.threeWOneL.action || "Không ghi"}</p>
+              </div>
+              <!-- LESSON -->
+              <div class="bg-indigo-50 border border-indigo-100 rounded-xl p-4 space-y-1">
+                <span class="text-[10px] font-mono font-bold text-indigo-500 uppercase tracking-wider flex items-center gap-1"><i data-lucide="lightbulb" class="h-3.5 w-3.5"></i> LESSON (Bài học rút ra)</span>
+                <p class="text-xs font-semibold text-rose-600 leading-relaxed">${q.threeWOneL.lesson || "Không ghi"}</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Explanation and Notes -->
+          ${q.explanation ? `
+            <div class="bg-slate-50 border border-slate-200/60 rounded-xl p-4 space-y-1">
+              <span class="text-[10px] font-mono font-bold text-slate-500 uppercase tracking-wider block">Giải thích lý thuyết mục tiêu</span>
+              <p class="text-xs text-slate-600 leading-relaxed whitespace-pre-line">${q.explanation}</p>
+            </div>
+          ` : ""}
+          
+          ${q.extension ? `
+            <div class="p-3 border-l-2 border-slate-300 text-[11px] text-slate-500 italic bg-slate-50/30">
+              <strong>Tài liệu tham khảo/Mở rộng:</strong> ${q.extension}
+            </div>
+          ` : ""}
+
+          <!-- AI ADVICE & EXPERT COMPANION PANEL (GEMINI INTEGRATED) -->
+          <div class="border border-indigo-100 rounded-xl bg-gradient-to-br from-indigo-50/50 to-rose-50/20 overflow-hidden shadow-sm" id="ai-advisor-panel-placeholder">
+            <!-- This gets managed below -->
+          </div>
+        `;
+        lucide.createIcons();
+        app.renderAIAdvisorCard(q);
+      },
+
+      renderAIAdvisorCard: (q) => {
+        const placeholder = document.getElementById("ai-advisor-panel-placeholder");
+        const memoized = state.aiAdviceCache[q.id];
+
+        if (memoized) {
+          // Display loaded coaching review and testing questions
+          placeholder.innerHTML = `
+            <div class="bg-indigo-900 text-white px-5 py-3 flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <i data-lucide="sparkles" class="h-4.5 w-4.5 text-amber-400"></i>
+                <span class="font-display font-semibold text-xs tracking-wide">PHÂN TÍCH CHUYÊN GIA PMP AI</span>
+              </div>
+              <button onclick="app.refreshAIAdvice('${q.id}')" class="text-[10px] hover:text-amber-200 cursor-pointer font-bold flex items-center gap-1">
+                <i data-lucide="rotate-ccw" class="h-3 w-3"></i> Tải lại tư vấn
+              </button>
+            </div>
+            
+            <div class="p-5 space-y-5">
+              <!-- Pedagogical advice -->
+              <div class="space-y-1.5">
+                <span class="text-[10px] font-mono font-bold text-indigo-700 uppercase tracking-wider block">Bình luận & Chỉ dẫn cách bẫy</span>
+                <p class="text-xs leading-relaxed text-slate-700 whitespace-pre-line">${memoized.advice}</p>
+              </div>
+
+              <!-- Mindset rules -->
+              <div class="space-y-2">
+                <span class="text-[10px] font-mono font-bold text-indigo-700 uppercase tracking-wider block">🌟 Bản đồ Tư duy PMI cần nhớ</span>
+                <ul class="space-y-1.5">
+                  ${memoized.pmpMindsetRules.map(rule => `
+                    <li class="text-xs text-slate-700 pl-4 relative before:content-[''] before:absolute before:left-0 before:top-2 before:h-1.5 before:w-1.5 before:rounded-full before:bg-indigo-500 font-medium">${rule}</li>
+                  `).join("")}
+                </ul>
+              </div>
+
+              <!-- Action Suggestion -->
+              <div class="bg-indigo-50 border border-indigo-100 p-3.5 rounded-lg flex gap-3">
+                <i data-lucide="info" class="h-4 w-4 text-indigo-600 shrink-0 mt-0.5"></i>
+                <div>
+                  <h5 class="text-xs font-bold text-indigo-800">Khuyến nghị thực chiến tiếp theo:</h5>
+                  <p class="text-[11px] text-indigo-700 mt-0.5">${memoized.recommendedAction}</p>
+                </div>
+              </div>
+
+              <!-- Custom mock testing question -->
+              ${memoized.customMockQuestion ? `
+                <div class="border border-slate-200 bg-white rounded-lg p-4 space-y-3.5">
+                  <div class="flex items-center justify-between">
+                    <span class="text-[11px] font-bold text-slate-700 flex items-center gap-1.5"><i data-lucide="help-circle" class="h-4 w-4 text-amber-500"></i> Bài tập khắc phục tư duy đột xuất</span>
+                    <span class="text-[10px] font-mono text-slate-400">Độ khó: Exam Real-Sim</span>
+                  </div>
+                  
+                  <p class="text-xs text-slate-800 font-medium leading-relaxed">${memoized.customMockQuestion.question}</p>
+                  
+                  <div class="space-y-2 text-xs" id="custom-quiz-choices-box">
+                    <button onclick="app.chooseCustomQuizAnswer('A', '${q.id}')" class="w-full text-left p-2.5 rounded border border-slate-200 hover:bg-indigo-50/50 hover:border-indigo-200 transition-all cursor-pointer font-medium block">
+                      <strong>A.</strong> ${memoized.customMockQuestion.options.A}
+                    </button>
+                    <button onclick="app.chooseCustomQuizAnswer('B', '${q.id}')" class="w-full text-left p-2.5 rounded border border-slate-200 hover:bg-indigo-50/50 hover:border-indigo-200 transition-all cursor-pointer font-medium block">
+                      <strong>B.</strong> ${memoized.customMockQuestion.options.B}
+                    </button>
+                    <button onclick="app.chooseCustomQuizAnswer('C', '${q.id}')" class="w-full text-left p-2.5 rounded border border-slate-200 hover:bg-indigo-50/50 hover:border-indigo-200 transition-all cursor-pointer font-medium block">
+                      <strong>C.</strong> ${memoized.customMockQuestion.options.C}
+                    </button>
+                    <button onclick="app.chooseCustomQuizAnswer('D', '${q.id}')" class="w-full text-left p-2.5 rounded border border-slate-200 hover:bg-indigo-50/50 hover:border-indigo-200 transition-all cursor-pointer font-medium block">
+                      <strong>D.</strong> ${memoized.customMockQuestion.options.D}
+                    </button>
+                  </div>
+                  
+                  <div class="hidden" id="custom-quiz-explanation-box">
+                    <div class="p-3.5 rounded-lg border text-xs leading-relaxed" id="custom-quiz-feedback-banner"></div>
+                    <p class="text-[11px] text-slate-500 mt-2 italic whitespace-pre-line">${memoized.customMockQuestion.explanation}</p>
+                  </div>
+                </div>
+              ` : ""}
+            </div>
+          `;
+        } else {
+          // Display active Coach solicitation
+          placeholder.innerHTML = `
+            <div class="p-6 text-center space-y-4">
+              <div class="h-12 w-12 bg-indigo-100 rounded-xl flex items-center justify-center mx-auto text-indigo-600">
+                <i data-lucide="sparkles" class="h-6 w-6"></i>
+              </div>
+              <div class="space-y-1">
+                <h5 class="text-xs font-bold text-slate-800">Muốn thấu hiểu bẫy rèn luyện này triệt để?</h5>
+                <p class="text-[11px] text-slate-500 max-w-md mx-auto">Nhận lời khuyên cá nhân bám sát mô hình 3W-1L của bạn từ Cố vấn AI (Gemini). AI sẽ chỉ rõ góc nhìn lệch tư duy và tạo thêm câu hỏi đối chiếu!</p>
+              </div>
+              <button onclick="app.fetchAIAdvice('${q.id}')" class="px-5 py-2.5 text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg shadow-md cursor-pointer shadow-indigo-600/10 hover:shadow-indigo-600/20 transition-all inline-flex items-center gap-1.5">
+                <i data-lucide="sparkles" class="h-4 w-4"></i> Phân tích lỗi sai bằng AI ✦
+              </button>
+            </div>
+          `;
+        }
+        lucide.createIcons();
+      },
+
+      fetchAIAdvice: async (id) => {
+        const q = app.getCurrentQuestion();
+        if (!q) return;
+
+        // Render loader
+        const placeholder = document.getElementById("ai-advisor-panel-placeholder");
+        placeholder.innerHTML = `
+          <div class="p-10 flex flex-col items-center justify-center text-center space-y-3">
+            <div class="h-8 w-8 rounded-full border-2 border-indigo-600 border-t-transparent animate-spin mb-1"></div>
+            <span class="text-xs font-semibold text-slate-700 animate-pulse">Cố vấn AI đang phân tích dữ liệu 3W-1L...</span>
+            <p class="text-[10px] text-slate-400">Gemini đang nghiên cứu đáp án sai của bạn để cung cấp cách phòng ngừa bẫy.</p>
+          </div>
+        `;
+
+        try {
+          const res = await fetch("/api/pmp/advice-3w1l", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              question: q.question,
+              options: q.options,
+              correctOption: q.correctOption,
+              userOption: q.userOption,
+              domain: q.domain,
+              explanation: q.explanation,
+              stt: q.stt,
+              extension: q.extension,
+              threeWOneL: q.threeWOneL
+            })
+          });
+
+          if (!res.ok) {
+            const errBody = await res.json();
+            throw new Error(errBody.error || "Mất kết nối với Server API /api/pmp/advice-3w1l");
+          }
+
+          const advice = await res.json();
+          state.aiAdviceCache[id] = advice;
+          app.renderAIAdvisorCard(q);
+          showToast("Nhận cố vấn PMP AI thành công!");
+        } catch (e) {
+          placeholder.innerHTML = `
+            <div class="p-6 text-center space-y-3.5 text-rose-600">
+              <i data-lucide="alert-triangle" class="h-8 w-8 mx-auto text-rose-500"></i>
+              <div class="space-y-1">
+                <h6 class="text-xs font-bold">Không thể tải phân tích của Cố vấn AI</h6>
+                <p class="text-[11px] text-slate-500 max-w-sm mx-auto">${e.message}</p>
+              </div>
+              <button onclick="app.fetchAIAdvice('${id}')" class="bg-indigo-600 text-white font-semibold text-xs px-4 py-2 rounded-lg cursor-pointer">Thử lại</button>
+            </div>
+          `;
+          lucide.createIcons();
+        }
+      },
+
+      refreshAIAdvice: (id) => {
+        delete state.aiAdviceCache[id];
+        app.fetchAIAdvice(id);
+      },
+
+      chooseCustomQuizAnswer: (ans, qId) => {
+        const cache = state.aiAdviceCache[qId];
+        if (!cache || !cache.customMockQuestion) return;
+
+        const isCorrect = ans === cache.customMockQuestion.correctOption;
+        
+        const banner = document.getElementById("custom-quiz-feedback-banner");
+        const expBox = document.getElementById("custom-quiz-explanation-box");
+        
+        if (isCorrect) {
+          banner.className = "p-3.5 rounded-lg border bg-emerald-50 border-emerald-200 text-emerald-800 text-xs font-bold leading-relaxed";
+          banner.innerHTML = `<span class="text-base">🎉 TRẢ LỜI ĐÚNG!</span> Bạn đã khắc phục tư duy lệch lạc thành công! Trực giác PMP của bạn đã nhạy bén hơn.`;
+        } else {
+          banner.className = "p-3.5 rounded-lg border bg-rose-50 border-rose-200 text-rose-800 text-xs font-bold leading-relaxed";
+          banner.innerHTML = `<span class="text-base">❌ SAI RỒI!</span> Hãy đọc kỹ lý giải chuyên gia bên dưới để tiếp tục hiệu chỉnh bẫy nhận thức nhé.`;
+        }
+        
+        // Highlight active clicked choice
+        const buttons = document.querySelectorAll("#custom-quiz-choices-box button");
+        buttons.forEach((btn, idx) => {
+          btn.disabled = true;
+          const letter = String.fromCharCode(65 + idx);
+          if (letter === cache.customMockQuestion.correctOption) {
+            btn.className = "w-full text-left p-2.5 rounded border-2 border-emerald-500 bg-emerald-50 text-emerald-900 text-xs font-medium block";
+          } else if (letter === ans) {
+            btn.className = "w-full text-left p-2.5 rounded border-2 border-rose-500 bg-rose-50 text-rose-900 text-xs font-medium block";
+          } else {
+            btn.className = "w-full text-left p-2.5 rounded border border-slate-200 bg-slate-50 text-slate-400 text-xs block";
+          }
+        });
+
+        expBox.classList.remove("hidden");
+      },
+
+      openAddForm: () => {
+        const ses = app.getCurrentSession();
+        if (!ses) {
+          alert("Vui lòng tạo Buổi học mới trước khi thêm câu hỏi sai!");
+          return;
+        }
+        state.selectedQuestionId = null;
+        app.renderEditQuestionForm();
+      },
+
+      openEditForm: (id) => {
+        state.selectedQuestionId = id;
+        app.renderEditQuestionForm();
+      },
+
+      renderEditQuestionForm: () => {
+        const dest = document.getElementById("right-view-container");
+        const q = app.getCurrentQuestion(); // returns null if adding
+
+        dest.innerHTML = `
+          <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+            <h3 class="font-display font-bold text-slate-800 text-base">
+              ${q ? "Hiệu Chỉnh Nhật Ký Lỗi Sai PMP" : "Thêm Câu Hỏi Lỗi Mới PMP"}
+            </h3>
+            <button onclick="${q ? `app.selectQuestion('${q.id}')` : 'app.renderEmptyState()'}" class="text-slate-500 hover:text-slate-700 cursor-pointer text-xs font-bold leading-none">Hủy bỏ</button>
+          </div>
+
+          <div class="space-y-4 text-xs font-medium" id="pmp-editor-form">
+            <div class="grid grid-cols-2 gap-4">
+              <div>
+                <label class="block text-slate-500 mb-1">STT Câu lỗi</label>
+                <input type="number" id="form-stt" value="${q ? q.stt : 1}" class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 font-mono" />
+              </div>
+              
+              <div>
+                <label class="block text-slate-500 mb-1">Vùng kiến thức (Domain)</label>
+                <select id="form-domain" class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                  <option value="Process" ${q && q.domain === 'Process' ? 'selected' : ''}>Process (Quy trình)</option>
+                  <option value="People" ${q && q.domain === 'People' ? 'selected' : ''}>People (Con người)</option>
+                  <option value="Business Environment" ${q && q.domain === 'Business Environment' ? 'selected' : ''}>Business Environment</option>
+                  <option value="Agile / Scrum Mindset" ${q && q.domain === 'Agile / Scrum Mindset' ? 'selected' : ''}>Agile / Scrum Mindset</option>
+                  <option value="Hybrid" ${q && q.domain === 'Hybrid' ? 'selected' : ''}>Hybrid (Mô hình lai)</option>
+                  <option value="Other" ${q && q.domain === 'Other' ? 'selected' : ''}>Phân loại khác</option>
+                </select>
+              </div>
+            </div>
+
+            <div>
+              <label class="block text-slate-500 mb-1">Đề bài câu hỏi (Stem)</label>
+              <textarea id="form-question" rows="4" placeholder="Nhập đầu đề câu hỏi sai cần lưu trữ..." class="w-full p-3 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 font-medium leading-relaxed">${q ? q.question : ""}</textarea>
+            </div>
+
+            <!-- Options inputs -->
+            <div class="space-y-3">
+              <label class="block text-slate-500 uppercase tracking-wider text-[10px] font-bold">Các Phương Án Lựa Chọn (A, B, C, D)</label>
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div class="space-y-1">
+                  <span class="text-slate-400 font-mono text-[10px]">A.</span>
+                  <input type="text" id="form-opt-a" value="${q ? q.options.A : ""}" placeholder="Phương án A..." class="w-full p-2 bg-slate-50 border border-slate-200 rounded-lg" />
+                </div>
+                <div class="space-y-1">
+                  <span class="text-slate-400 font-mono text-[10px]">B.</span>
+                  <input type="text" id="form-opt-b" value="${q ? q.options.B : ""}" placeholder="Phương án B..." class="w-full p-2 bg-slate-50 border border-slate-200 rounded-lg" />
+                </div>
+                <div class="space-y-1">
+                  <span class="text-slate-400 font-mono text-[10px]">C.</span>
+                  <input type="text" id="form-opt-c" value="${q ? q.options.C : ""}" placeholder="Phương án C..." class="w-full p-2 bg-slate-50 border border-slate-200 rounded-lg" />
+                </div>
+                <div class="space-y-1">
+                  <span class="text-slate-400 font-mono text-[10px]">D.</span>
+                  <input type="text" id="form-opt-d" value="${q ? q.options.D : ""}" placeholder="Phương án D..." class="w-full p-2 bg-slate-50 border border-slate-200 rounded-lg" />
+                </div>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-4 pt-1">
+              <div>
+                <label class="block text-slate-500 mb-1 font-bold text-emerald-600">Đáp án ĐÚNG</label>
+                <select id="form-correct-opt" class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 font-bold text-emerald-700">
+                  <option value="">-- Chọn đáp án đúng --</option>
+                  <option value="A" ${q && q.correctOption === 'A' ? 'selected' : ''}>A</option>
+                  <option value="B" ${q && q.correctOption === 'B' ? 'selected' : ''}>B</option>
+                  <option value="C" ${q && q.correctOption === 'C' ? 'selected' : ''}>C</option>
+                  <option value="D" ${q && q.correctOption === 'D' ? 'selected' : ''}>D</option>
+                </select>
+              </div>
+              
+              <div>
+                <label class="block text-slate-500 mb-1 font-bold text-rose-600">Bạn đã CHỌN sai phương án nào?</label>
+                <select id="form-user-opt" class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 font-bold text-rose-700">
+                  <option value="">-- Chọn phương án bẫy --</option>
+                  <option value="A" ${q && q.userOption === 'A' ? 'selected' : ''}>A</option>
+                  <option value="B" ${q && q.userOption === 'B' ? 'selected' : ''}>B</option>
+                  <option value="C" ${q && q.userOption === 'C' ? 'selected' : ''}>C</option>
+                  <option value="D" ${q && q.userOption === 'D' ? 'selected' : ''}>D</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- 3W-1L MISTAKE DECONSTRUCTION FORM -->
+            <div class="space-y-3 pt-3 border-t border-slate-100">
+              <h4 class="text-[11px] font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5"><i data-lucide="award" class="h-4 w-4 text-rose-500"></i> PHƯƠNG PHÁP CHỈNH LỖI SAI COGNITIVE "3W-1L"</h4>
+              
+              <div class="space-y-3">
+                <div>
+                  <label class="block text-slate-500 mb-1">WHAT (Sai cái gì? Khớp lý do gây nhầm lẫn)</label>
+                  <input type="text" id="form-what" value="${q ? q.threeWOneL.what : ""}" placeholder="Tôi bị bẫy lựa chọn bồi thường thay đổi trước khi đánh giá..." class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg" />
+                </div>
+                <div>
+                  <label class="block text-slate-500 mb-1">WHY (Tại sao nhầm? Giải mã động cơ sai lệch)</label>
+                  <input type="text" id="file-why" value="${q ? q.threeWOneL.why : ""}" placeholder="Do thiên kiến Servant leader nghĩ phải lập tức dẹp bỏ rào cản hỗ trợ kỹ sư..." class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg" />
+                </div>
+                <div>
+                  <label class="block text-slate-500 mb-1">ACTION (Hành động sửa sai? Cách tư duy đúng chuẩn PMI)</label>
+                  <input type="text" id="form-action" value="${q ? q.threeWOneL.action : ""}" placeholder="Phải đánh giá rủi ro dự án, lấy cam kết rồi mới phê chuẩn Change request." class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg" />
+                </div>
+                <div>
+                  <label class="block text-slate-500 mb-1 font-bold text-indigo-700">LESSON (Rút ra 1 bài học vàng tóm tắt súc tích)</label>
+                  <input type="text" id="form-lesson" value="${q ? q.threeWOneL.lesson : ""}" placeholder="Luôn khảo sát đánh giá tác động trước khi thực hiện hành động hỗ trợ can thiệp." class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg font-semibold text-rose-600" />
+                </div>
+              </div>
+            </div>
+
+            <!-- Explanation & Reference Notes -->
+            <div class="space-y-3 pt-2">
+              <div>
+                <label class="block text-slate-500 mb-1">Giải thích đề bài lý thuyết (Tùy chọn)</label>
+                <textarea id="form-explanation" rows="2" placeholder="Copy lý giải nguồn đề..." class="w-full p-2 bg-slate-50 border border-slate-200 rounded-lg">${q ? q.explanation : ""}</textarea>
+              </div>
+              <div>
+                <label class="block text-slate-500 mb-1">Kiến thức bổ trợ / Trang sách PMBOK / Đường dẫn liên quan</label>
+                <input type="text" id="form-extension" value="${q ? q.extension : ""}" placeholder="PMBOK 7 - Trang 123; Agile Practice Guide..." class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg" />
+              </div>
+            </div>
+
+            <!-- Submit Buttons -->
+            <div class="flex justify-end gap-3 pt-3">
+              <button onclick="${q ? `app.selectQuestion('${q.id}')` : 'app.renderEmptyState()'}" class="bg-slate-100 hover:bg-slate-200 hover:text-slate-900 border border-slate-200 text-slate-600 px-5 py-2.5 rounded-lg font-bold cursor-pointer">Bỏ qua</button>
+              <button onclick="app.submitQuestionForm('${q ? q.id : ''}')" class="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2.5 rounded-lg font-bold cursor-pointer">
+                ${q ? "Lưu Thay Đổi 💾" : "Tạo Ghi Chép Lỗi Sai ➕"}
+              </button>
+            </div>
+          </div>
+        `;
+        lucide.createIcons();
+      },
+
+      submitQuestionForm: async (editingId) => {
+        const ses = app.getCurrentSession();
+        if (!ses) return;
+
+        const stt = Number(document.getElementById("form-stt").value) || 1;
+        const dom = document.getElementById("form-domain").value;
+        const quest = document.getElementById("form-question").value.trim();
+        const oa = document.getElementById("form-opt-a").value.trim();
+        const ob = document.getElementById("form-opt-b").value.trim();
+        const oc = document.getElementById("form-opt-c").value.trim();
+        const od = document.getElementById("form-opt-d").value.trim();
+        const corr = document.getElementById("form-correct-opt").value;
+        const usr = document.getElementById("form-user-opt").value;
+        const what = document.getElementById("form-what").value.trim();
+        const why = document.getElementById("file-why").value.trim();
+        const act = document.getElementById("form-action").value.trim();
+        const les = document.getElementById("form-lesson").value.trim();
+        const exp = document.getElementById("form-explanation").value.trim();
+        const ext = document.getElementById("form-extension").value.trim();
+
+        if (!quest) {
+          alert("Vui lòng nhập nội dung đề bài câu hỏi.");
+          return;
+        }
+
+        if (editingId) {
+          // Editing existing
+          const q = ses.questions.find(item => item.id === editingId);
+          if (q) {
+            q.stt = stt;
+            q.domain = dom;
+            q.question = quest;
+            q.options = { A: oa, B: ob, C: oc, D: od };
+            q.correctOption = corr;
+            q.userOption = usr;
+            q.threeWOneL = { what: what, why: why, action: act, lesson: les };
+            q.explanation = exp;
+            q.extension = ext;
+          }
+        } else {
+          // Add new question
+          const qId = "q-" + Date.now();
+          ses.questions.push({
+            id: qId,
+            stt: stt,
+            domain: dom,
+            question: quest,
+            options: { A: oa, B: ob, C: oc, D: od },
+            correctOption: corr,
+            userOption: usr,
+            threeWOneL: { what: what, why: why, action: act, lesson: les },
+            explanation: exp,
+            extension: ext,
+            isFlagged: false
+          });
+          state.selectedQuestionId = qId;
+        }
+
+        await persistence.save(state.sessions);
+        app.renderQuestionsDirectory();
+        
+        if (state.selectedQuestionId) {
+          app.selectQuestion(state.selectedQuestionId);
+        } else {
+          app.renderEmptyState();
+        }
+        showToast("Đã lưu trữ nhật ký lỗi sai thành công!");
+      }
+    };
+
+    // Immersive 10-Question speed testing simulation engine
+    const quizMode = {
+      start: () => {
+        // Collect candidate questions (from current selected session or otherwise all questions in all sessions)
+        let reservoir = [];
+        const ses = app.getCurrentSession();
+        
+        if (ses && ses.questions.length > 0) {
+          reservoir = [...ses.questions];
+        } else {
+          state.sessions.forEach(s => {
+            s.questions.forEach(q => {
+              reservoir.push(q);
+            });
+          });
+        }
+
+        if (reservoir.length === 0) {
+          alert("Quỹ câu hỏi lỗi sai đang trống. Hãy nhập thêm câu hỏi hoặc import từ Excel trước khi kiểm tra!");
+          return;
+        }
+
+        // Shuffle and pick up to 10
+        reservoir.sort(() => Math.random() - 0.5);
+        quizState.questions = reservoir.slice(0, 10);
+        quizState.currentIndex = 0;
+        quizState.userAnswers = {};
+        quizState.isAnswerChecked = false;
+        quizState.isActive = true;
+
+        quizMode.renderStage();
+      },
+
+      renderStage: () => {
+        const dest = document.getElementById("right-view-container");
+        const idx = quizState.currentIndex;
+        const q = quizState.questions[idx];
+        const isLast = idx === quizState.questions.length - 1;
+        
+        dest.innerHTML = `
+          <div class="bg-indigo-900 -mx-6 -mt-6 p-5 text-white flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <span class="h-2 w-2 rounded-full bg-emerald-400 animate-ping"></span>
+              <span class="font-display font-medium text-xs tracking-wider uppercase text-indigo-200">LUYỆN TẬP TỐC ĐỘ: REVIEW LỖI SAI</span>
+            </div>
+            <button onclick="quizMode.exit()" class="text-xs hover:text-rose-200 font-bold flex items-center gap-1 cursor-pointer">
+              <i data-lucide="eye-off" class="h-3.5 w-3.5"></i> Thoát Luyện Tập
+            </button>
+          </div>
+
+          <div class="space-y-5 pt-3">
+            <div class="flex items-center justify-between text-[11px] font-bold text-slate-400">
+              <span class="font-mono text-indigo-600">Câu Hỏi Lỗ Hổng: ${idx + 1} / ${quizState.questions.length}</span>
+              <span class="px-2 py-0.5 rounded bg-slate-100 text-slate-600 font-mono">${q.domain} (STT #${q.stt})</span>
+            </div>
+
+            <div class="p-4 bg-slate-55 border border-slate-100 rounded-xl">
+              <p class="text-slate-800 font-semibold text-[13px] leading-relaxed whitespace-pre-line">${q.question}</p>
+            </div>
+
+            <div class="space-y-2.5 text-xs font-semibold" id="quiz-choices-box">
+              ${['A', 'B', 'C', 'D'].map(letter => {
+                const optText = q.options[letter] || `Option ${letter}`;
+                return `
+                  <button onclick="quizMode.selectOption('${letter}')" id="quiz-btn-${letter}" class="w-full text-left p-3 rounded-xl border border-slate-200 hover:bg-slate-50 cursor-pointer block transition-all">
+                    <strong>${letter}.</strong> ${optText}
+                  </button>
+                `;
+              }).join("")}
+            </div>
+
+            <div class="p-4 bg-slate-50 border border-slate-100 rounded-xl space-y-2.5 hidden" id="quiz-feedback-box">
+              <div class="flex items-center gap-2">
+                <span id="quiz-verdict-title" class="text-xs font-bold uppercase tracking-wider block">Kết quả</span>
+              </div>
+              <p class="text-[12px] text-slate-700 leading-relaxed font-medium" id="quiz-verdict-exp"></p>
+              
+              <!-- 3W-1L context flash -->
+              <div class="p-3 bg-rose-50/70 border border-rose-100/50 rounded-lg text-slate-600 text-[11px] leading-tight flex flex-col gap-1">
+                <span class="font-bold text-rose-700 uppercase tracking-widest text-[9px] block">Nhắc nhở thiên kiến (3W-1L):</span>
+                <span><strong>Tại sao nhầm trước đây:</strong> ${q.threeWOneL.why || "Chưa thiết lập"}</span>
+                <span><strong>Bài học khuyên bảo:</strong> ${q.threeWOneL.lesson || "Chưa thiết lập"}</span>
+              </div>
+            </div>
+
+            <div class="flex justify-between items-center pt-3 border-t border-slate-100">
+              <button onclick="quizMode.prev()" ${idx === 0 ? "disabled" : ""} class="text-slate-500 hover:text-slate-700 font-bold disabled:opacity-30 disabled:pointer-events-none cursor-pointer flex items-center gap-1">
+                <i data-lucide="chevron-left" class="h-4 w-4"></i> Trước
+              </button>
+              
+              ${!quizState.isAnswerChecked ? `
+                <button onclick="quizMode.checkAnswer()" id="quiz-check-btn" class="bg-indigo-600 hover:bg-indigo-700 shadow shadow-indigo-600/10 text-white font-bold text-xs px-5 py-2.5 rounded-lg cursor-pointer">
+                  Kiểm tra đáp án
+                </button>
+              ` : `
+                <button onclick="${isLast ? 'quizMode.finish()' : 'quizMode.next()'}" class="bg-slate-800 hover:bg-slate-900 text-white font-bold text-xs px-5 py-2.5 rounded-lg cursor-pointer">
+                  ${isLast ? "Xem kết quả bài test" : "Tiếp theo ➔"}
+                </button>
+              `}
+            </div>
+          </div>
+        `;
+        lucide.createIcons();
+        
+        // Restore pre-selected choice if already stored
+        const preSelected = quizState.userAnswers[idx];
+        if (preSelected) {
+          quizMode.selectOption(preSelected, false);
+        }
+        
+        if (quizState.isAnswerChecked) {
+          quizMode.exposeVerdict();
+        }
+      },
+
+      selectOption: (letter, animate = true) => {
+        if (quizState.isAnswerChecked) return;
+        
+        const idx = quizState.currentIndex;
+        quizState.userAnswers[idx] = letter;
+
+        // Reset choice outlines
+        ['A', 'B', 'C', 'D'].forEach(l => {
+          const btn = document.getElementById(`quiz-btn-${l}`);
+          btn.className = "w-full text-left p-3 rounded-xl border border-slate-200 bg-white cursor-pointer block transition-all hover:bg-slate-50 text-slate-800";
+        });
+
+        const activeBtn = document.getElementById(`quiz-btn-${letter}`);
+        activeBtn.className = "w-full text-left p-3 rounded-xl border-2 border-indigo-500 bg-indigo-50/50 cursor-pointer block transition-all font-bold text-indigo-900";
+      },
+
+      checkAnswer: () => {
+        const idx = quizState.currentIndex;
+        const choice = quizState.userAnswers[idx];
+        if (!choice) {
+          alert("Vui lòng chọn 1 phương án trước khi đối so chiếu đáp án.");
+          return;
+        }
+
+        quizState.isAnswerChecked = true;
+        quizMode.exposeVerdict();
+        
+        // Dynamic controls swap
+        quizMode.renderStage();
+      },
+
+      exposeVerdict: () => {
+        const idx = quizState.currentIndex;
+        const q = quizState.questions[idx];
+        const choice = quizState.userAnswers[idx];
+        const isCorrect = choice === q.correctOption;
+
+        const box = document.getElementById("quiz-feedback-box");
+        const title = document.getElementById("quiz-verdict-title");
+        const exp = document.getElementById("quiz-verdict-exp");
+
+        box.classList.remove("hidden");
+        if (isCorrect) {
+          title.className = "text-emerald-700 text-xs font-bold uppercase tracking-wider block flex items-center gap-1";
+          title.innerHTML = `<i data-lucide="check-circle-2" class="h-4 w-4"></i> TRẢ LỜI ĐÚNG!`;
+          exp.textContent = "Bạn đã khắc phục nhận thức xuất sắc! Trực giác PMP hoàn toàn chuẩn xác.";
+        } else {
+          title.className = "text-rose-700 text-xs font-bold uppercase tracking-wider block flex items-center gap-1";
+          title.innerHTML = `<i data-lucide="x-circle" class="h-4 w-4"></i> CHƯA CHÍNH XÁC!`;
+          exp.textContent = `Bạn đã trượt bẫy! Đáp án đúng chuẩn PMI của bài thi là: [${q.correctOption}]. Chi tiết phân tích: ${q.explanation || "Không ghi"}`;
+        }
+
+        // Highlight choices colors
+        ['A', 'B', 'C', 'D'].forEach(l => {
+          const btn = document.getElementById(`quiz-btn-${l}`);
+          btn.disabled = true;
+          if (l === q.correctOption) {
+            btn.className = "w-full text-left p-3 rounded-xl border-2 border-emerald-500 bg-emerald-50 text-emerald-950 font-bold block";
+          } else if (l === choice) {
+            btn.className = "w-full text-left p-3 rounded-xl border-2 border-rose-500 bg-rose-50 text-rose-950 block";
+          } else {
+            btn.className = "w-full text-left p-3 rounded-xl border border-slate-100 bg-slate-50 text-slate-400 block";
+          }
+        });
+        lucide.createIcons();
+      },
+
+      next: () => {
+        quizState.currentIndex++;
+        quizState.isAnswerChecked = false;
+        quizMode.renderStage();
+      },
+
+      prev: () => {
+        quizState.currentIndex--;
+        quizState.isAnswerChecked = true; // Review state
+        quizMode.renderStage();
+      },
+
+      finish: () => {
+        let score = 0;
+        quizState.questions.forEach((q, idx) => {
+          if (quizState.userAnswers[idx] === q.correctOption) score++;
+        });
+
+        const dest = document.getElementById("right-view-container");
+        dest.innerHTML = `
+          <div class="h-full flex flex-col items-center justify-center text-center p-10 space-y-6">
+            <div class="h-20 w-20 rounded-full bg-gradient-to-tr from-indigo-500 to-rose-500 flex items-center justify-center text-white shadow-xl">
+              <i data-lucide="award" class="h-10 w-10"></i>
+            </div>
+            
+            <div class="space-y-2">
+              <h4 class="font-display font-bold text-slate-800 text-lg">LUYỆN TẬP TỐC ĐỘ HOÀN THÀNH</h4>
+              <p class="text-xs text-slate-500 max-w-md">Bản tổng hợp điểm dựa trên số câu vượt rào bẫy tư duy của bạn.</p>
+            </div>
+
+            <div class="text-3xl font-display font-black text-indigo-600 font-mono tracking-tight bg-indigo-50 border border-indigo-100/50 px-6 py-3 rounded-xl">
+              ${score} / ${quizState.questions.length} CÂU ĐÚNG
+            </div>
+
+            <p class="text-xs font-medium text-slate-600 leading-relaxed max-w-sm">
+              ${score === quizState.questions.length 
+                ? "Thành tích tuyệt đối! Tư du của bạn hoàn toàn thống nhất với mindset của đề thi PMI." 
+                : "Tư duy của bạn còn một số bẫy phản xạ, hãy xem kỹ lại các thẻ sai ghi chép trong Sổ tay 3W-1L và tiếp tục tích lũy!"}
+            </p>
+
+            <div class="flex gap-3">
+              <button onclick="quizMode.start()" class="bg-indigo-600 text-white font-bold text-xs px-5 py-2.5 rounded-lg hover:bg-indigo-700 cursor-pointer">Luyện đề khác</button>
+              <button onclick="quizMode.exit()" class="bg-slate-100 hover:bg-slate-200 border border-slate-200 text-slate-600 font-bold text-xs px-5 py-2.5 rounded-lg cursor-pointer">Về trang chủ</button>
+            </div>
+          </div>
+        `;
+        lucide.createIcons();
+      },
+
+      exit: () => {
+        quizState.isActive = false;
+        if (state.selectedQuestionId) {
+          app.selectQuestion(state.selectedQuestionId);
+        } else {
+          app.renderEmptyState();
+        }
+      }
+    };
+
+    // Bootstrap app loading
+    window.addEventListener("DOMContentLoaded", () => {
+      app.init();
+    });
+  </script>
+</body>
+</html>

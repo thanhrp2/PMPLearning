@@ -1,0 +1,24 @@
+{
+  "short_name": "PMP 3W-1L",
+  "name": "Sổ Tay Sửa Lỗi Sai PMP - 3W-1L",
+  "description": "Ứng dụng ghi nhận lỗi sai và ôn thi PMP trực diện chuẩn PMI",
+  "icons": [
+    {
+      "src": "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=192&auto=format&fit=crop&q=80",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=512&auto=format&fit=crop&q=80",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "start_url": "/",
+  "background_color": "#0f172a",
+  "theme_color": "#0f172a",
+  "display": "standalone",
+  "orientation": "portrait"
+}

@@ -1,0 +1,6 @@
+{
+  "name": "PMP Mastery Tracker & AI Advisor",
+  "description": "An interactive practice-session and error-logging app for PMP aspirants, optimized with the 3W-1L cognitive framework (What, Why, Action, Lesson learned) to turn wrong answers into learning points, integrated with Gemini AI suggestions.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
