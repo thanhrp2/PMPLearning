@@ -98,39 +98,15 @@
 
     <!-- MAIN INTERACTION ACTIONS -->
     <div class="flex items-center space-x-1.5 md:space-x-3 shrink-0">
-      <!-- Database & Backup Dropdown Container -->
-      <div class="relative inline-block text-left" id="backup-dropdown-container">
+      <!-- Direct Excel Import Button (No Dropdown Menu) -->
+      <div id="backup-dropdown-container">
         <!-- Hidden elements for file upload actions -->
         <input type="file" id="import-excel-file" accept=".xlsx,.xls,.csv" class="hidden" onchange="backup.importExcel(event)" />
-        <input type="file" id="import-json-file" accept=".json" class="hidden" onchange="backup.importJSON(event)" />
-
-        <button onclick="app.toggleDbDropdown(event)" class="flex items-center gap-1 md:gap-1.5 px-2 py-1.5 md:px-3 md:py-2 text-[11px] md:text-xs font-semibold text-slate-700 hover:text-indigo-600 bg-white hover:bg-slate-50 border border-slate-200 rounded-lg shadow-sm transition-all cursor-pointer">
-          <i data-lucide="database" class="h-3.5 w-3.5 text-indigo-500 shrink-0"></i>
-          <span class="hidden sm:inline">Sao Lưu & Dữ Liệu</span>
-          <span class="inline sm:hidden">Dữ Liệu</span>
-          <i data-lucide="chevron-down" class="h-3 w-3 text-slate-400 shrink-0"></i>
-        </button>
         
-        <div id="backup-dropdown-menu" class="hidden absolute right-0 mt-2 w-64 rounded-xl bg-white border border-slate-200 shadow-xl overflow-hidden z-50 text-xs py-1.5 animate-fadeIn">
-          <div class="px-3 py-1.5 text-[10px] font-bold text-slate-450 uppercase tracking-wider border-b border-slate-100 mb-1">Nhập / Xuất Excel</div>
-          <button onclick="document.getElementById('import-excel-file').click(); app.closeDbDropdown();" class="w-full text-left px-3.5 py-2 hover:bg-slate-50 flex items-center gap-2 cursor-pointer text-slate-700">
-            <i data-lucide="file-spreadsheet" class="h-3.5 w-3.5 text-emerald-600"></i> Nhập từ Excel / CSV
-          </button>
-          <button onclick="backup.exportToExcel(); app.closeDbDropdown();" class="w-full text-left px-3.5 py-2 hover:bg-slate-50 flex items-center gap-2 cursor-pointer text-indigo-600 font-semibold">
-            <i data-lucide="file-output" class="h-3.5 w-3.5"></i> Xuất Excel Thống Kê
-          </button>
-          <button onclick="backup.exportTemplate(); app.closeDbDropdown();" class="w-full text-left px-3.5 py-2 hover:bg-slate-50 flex items-center gap-2 cursor-pointer text-slate-550">
-            <i data-lucide="download" class="h-3.5 w-3.5 text-slate-400"></i> Tải Mẫu Excel PMP
-          </button>
-          
-          <div class="px-3 py-1.5 text-[10px] font-bold text-slate-450 uppercase tracking-wider border-y border-slate-100 my-1">Tệp Sao Lưu Hệ Thống (.JSON)</div>
-          <button onclick="backup.downloadJSON(); app.closeDbDropdown();" class="w-full text-left px-3.5 py-2 hover:bg-slate-50 flex items-center gap-2 cursor-pointer text-slate-755">
-            <i data-lucide="download-cloud" class="h-3.5 w-3.5 text-indigo-500"></i> Tải File Sao Lưu (.JSON)
-          </button>
-          <button onclick="document.getElementById('import-json-file').click(); app.closeDbDropdown();" class="w-full text-left px-3.5 py-2 hover:bg-slate-50 flex items-center gap-2 cursor-pointer text-slate-755">
-            <i data-lucide="upload-cloud" class="h-3.5 w-3.5 text-indigo-500"></i> Tải Lên File Sao Lưu (.JSON)
-          </button>
-        </div>
+        <button onclick="document.getElementById('import-excel-file').click();" class="flex items-center gap-1 md:gap-1.5 px-3 py-1.5 md:px-4 md:py-2 text-[11px] md:text-xs font-semibold text-white bg-emerald-600 hover:bg-emerald-700 hover:shadow-emerald-600/10 border border-emerald-500 rounded-lg shadow-sm transition-all cursor-pointer">
+          <i data-lucide="file-spreadsheet" class="h-3.5 w-3.5 shrink-0"></i>
+          <span>Nhập Excel</span>
+        </button>
       </div>
 
       <!-- Quick speed test button -->
@@ -363,28 +339,47 @@
     // REST Server / LocalStorage Sync Manager
     const persistence = {
       load: async () => {
+        let loadedSessions = null;
         try {
           const res = await fetch("/api/pmp/sessions");
           if (res.ok) {
             const data = await res.json();
-            if (Array.isArray(data) && data.length > 0) {
-              return data;
+            if (Array.isArray(data)) {
+              loadedSessions = data;
             }
           }
         } catch (e) {
           console.warn("Backend server not available. Falling back to LocalStorage.");
         }
         
-        // Fallback to LocalStorage
+        if (loadedSessions === null) {
+          // Fallback to LocalStorage
+          try {
+            const raw = localStorage.getItem("pmp_sessions");
+            if (raw) loadedSessions = JSON.parse(raw);
+          } catch (e) {
+            console.error("Local storage read error:", e);
+          }
+        }
+
+        let hasInteracted = false;
         try {
-          const raw = localStorage.getItem("pmp_sessions");
-          if (raw) return JSON.parse(raw);
-        } catch (e) {
-          console.error("Local storage read error:", e);
+          hasInteracted = localStorage.getItem("pmp_interacted") === "true";
+        } catch (e) {}
+
+        if (loadedSessions && loadedSessions.length > 0) {
+          try {
+            localStorage.setItem("pmp_interacted", "true");
+          } catch (e) {}
+          return loadedSessions;
+        }
+
+        if (loadedSessions && loadedSessions.length === 0 && hasInteracted) {
+          return [];
         }
         
         // Inject 5 high-quality initial seed questions simulating imported Excel with Vietnamese values
-        return [{
+        const seedData = [{
           id: "session-seed-1",
           title: "Thiết lập Ban đầu - Bài học 3W-1L từ Excel Mẫu",
           date: new Date().toISOString().split("T")[0],
@@ -502,12 +497,23 @@
             }
           ]
         }];
+        try {
+          localStorage.setItem("pmp_interacted", "true");
+          localStorage.setItem("pmp_sessions", JSON.stringify(seedData));
+          fetch("/api/pmp/sessions", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(seedData)
+          }).catch(() => {});
+        } catch (e) {}
+        return seedData;
       },
       
       save: async (sessions) => {
         state.isSaving = true;
         // Save to LocalStorage first
         try {
+          localStorage.setItem("pmp_interacted", "true");
           localStorage.setItem("pmp_sessions", JSON.stringify(sessions));
         } catch (e) {
           console.error("Local storage write error:", e);
