@@ -260,6 +260,39 @@
     </div>
   </div>
 
+  <!-- CUSTOM CONFIRM MODAL -->
+  <div id="custom-confirm-modal" class="fixed inset-0 z-[100] bg-slate-900/40 backdrop-blur-sm flex items-center justify-center hidden p-4">
+    <div class="bg-white w-full max-w-sm rounded-xl shadow-xl overflow-hidden border border-slate-100 transition-all">
+      <div class="bg-slate-950 px-5 py-4 flex items-center justify-between text-white">
+        <h3 class="font-display font-semibold text-sm flex items-center gap-1.5"><i data-lucide="alert-triangle" class="h-4 w-4 text-amber-400"></i> Xác nhận yêu cầu</h3>
+        <button onclick="app.closeConfirmModal()" class="text-slate-400 hover:text-white cursor-pointer"><i data-lucide="x" class="h-4 w-4"></i></button>
+      </div>
+      <div class="p-5 space-y-4">
+        <p id="custom-confirm-message" class="text-xs text-slate-600 font-medium leading-relaxed">Bạn có chắc chắn muốn thực hiện hành động này?</p>
+        <div class="flex gap-2.5 justify-end pt-1">
+          <button onclick="app.closeConfirmModal()" class="bg-slate-100 hover:bg-slate-200 border border-slate-200 text-slate-600 px-3.5 py-1.5 rounded-lg text-xs font-bold cursor-pointer">Hủy</button>
+          <button id="custom-confirm-submit-btn" class="bg-rose-600 hover:bg-rose-700 text-white px-4 py-1.5 rounded-lg text-xs font-bold cursor-pointer">Xác nhận</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CUSTOM ALERT MODAL -->
+  <div id="custom-alert-modal" class="fixed inset-0 z-[100] bg-slate-900/40 backdrop-blur-sm flex items-center justify-center hidden p-4">
+    <div class="bg-white w-full max-w-sm rounded-xl shadow-xl overflow-hidden border border-slate-100 transition-all">
+      <div class="bg-slate-950 px-5 py-4 flex items-center justify-between text-white">
+        <h3 class="font-display font-semibold text-sm flex items-center gap-1.5"><i data-lucide="info" class="h-4 w-4 text-indigo-400"></i> Thông Báo</h3>
+        <button onclick="app.closeAlertModal()" class="text-slate-400 hover:text-white cursor-pointer"><i data-lucide="x" class="h-4 w-4"></i></button>
+      </div>
+      <div class="p-5 space-y-4">
+        <p id="custom-alert-message" class="text-xs text-slate-600 font-medium leading-relaxed"></p>
+        <div class="flex justify-end pt-1">
+          <button onclick="app.closeAlertModal()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-1.5 rounded-lg text-xs font-bold cursor-pointer">Đóng</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- FLOATING TOAST NOTIFICATION -->
   <div id="toast-notification" class="fixed bottom-6 right-6 z-50 transform translate-y-12 opacity-0 pointer-events-none bg-slate-900 text-white rounded-lg px-4 py-3 flex items-center gap-2 shadow-lg max-w-sm border border-slate-800 text-xs font-medium">
     <i data-lucide="info" class="h-4 w-4 text-emerald-400" id="toast-icon"></i>
@@ -350,34 +383,124 @@
           console.error("Local storage read error:", e);
         }
         
-        // Inject 1 high-quality initial seed question to keep it descriptive with Vietnamese values
+        // Inject 5 high-quality initial seed questions simulating imported Excel with Vietnamese values
         return [{
           id: "session-seed-1",
-          title: "Buổi Luyện Đề Mẫu #1 - 3W-1L",
+          title: "Thiết lập Ban đầu - Bài học 3W-1L từ Excel Mẫu",
           date: new Date().toISOString().split("T")[0],
-          notes: "Buổi sửa lỗi sai mẫu để làm quen với cấu trúc 3W1L và Cố vấn AI",
-          questions: [{
-            id: "q-seed-1",
-            stt: 1,
-            question: "During a project progress meeting, a stakeholder informs the team that a previously identified technical issue has been resolved. However, the stakeholder warns that the same issue is likely to happen on other, similar projects. What should the project manager do first?",
-            domain: "Process",
-            options: {
-              A: "Update the lessons learned register.",
-              B: "Communicate the warning to the project sponsor.",
-              C: "Update the issue log.",
-              D: "Prepare a risk report."
+          notes: "Tệp câu hỏi mẫu tiêu chuẩn mô phỏng quá trình nhập liệu lỗi sai từ Excel.",
+          questions: [
+            {
+              id: "q-seed-1",
+              stt: 1,
+              question: "During a project progress meeting, a stakeholder informs the team that a previously identified technical issue has been resolved. However, the stakeholder warns that the same issue is likely to happen on other, similar projects. What should the project manager do first?",
+              domain: "Process",
+              options: {
+                A: "Update the lessons learned register.",
+                B: "Communicate the warning to the project sponsor.",
+                C: "Update the issue log.",
+                D: "Prepare a risk report."
+              },
+              correctOption: "A",
+              userOption: "C",
+              explanation: "Tình huống nêu rõ vấn đề kỹ thuật ĐÃ được giải quyết xong, do đó không còn vấn đề mở nào để ghi nhận/cập nhật vào Issue Log nữa. Nhận định rủi ro của stakeholder liên quan đến các dự án tương tự khác trong tương lai, nghĩa là nó thuộc về tri thức tổ chức (organizational knowledge). Do đó, hành động chuẩn nhất là chia sẻ qua Lessons Learned Register.",
+              threeWOneL: {
+                what: "Tôi chọn nhầm 'Update the issue log' (C) thay vì phương án cập nhật Lessons Learned Register.",
+                why: "Thói quen máy móc cứ thấy báo cáo vấn đề kỹ thuật là chọn Issue log bẫy bản thân, mà quên mất từ khóa 'vấn đề ĐÃ được giải quyết xong' (resolved). Bị nhầm lẫn giữa công tác theo dõi vấn đề của dự án hiện tại với việc chia sẻ bài học rủi ro cho tương lai.",
+                action: "Độc lập phân loại: Khi status của issue đã chuyển thành 'Resolved' thì bỏ qua bước log issue mới. Tiếp cận bối cảnh 'các dự án khác' bằng Lessons Learned.",
+                lesson: "Vấn đề kỹ thuật đã đóng thì không cập nhật Issue Log. Rủi ro lan truyền cho các dự án tương tự được quản lý tối ưu thông qua Lessons Learned."
+              },
+              extension: "PMBOK 7th - Chapter on Project Work."
             },
-            correctOption: "A",
-            userOption: "C",
-            explanation: "Tình huống nêu rõ vấn đề kỹ thuật ĐÃ được giải quyết xong, do đó không còn vấn đề mở nào để ghi nhận/cập nhật vào Issue Log nữa. Nhận định rủi ro của stakeholder liên quan đến các dự án tương tự khác trong tương lai, nghĩa là nó thuộc về tri thức tổ chức (organizational knowledge). Do đó, hành động chuẩn nhất là chia sẻ qua Lessons Learned Register.",
-            threeWOneL: {
-              what: "Tôi chọn nhầm 'Update the issue log' (C) thay vì phương án cập nhật Lessons Learned Register.",
-              why: "Thói quen máy móc cứ thấy báo cáo vấn đề kỹ thuật là chọn Issue log bẫy bản thân, mà quên mất từ khóa 'vấn đề ĐÃ được giải quyết xong' (resolved). Bị nhầm lẫn giữa công tác theo dõi vấn đề của dự án hiện tại với việc chia sẻ bài học rủi ro cho tương lai.",
-              action: "Độc lập phân loại: Khi status của issue đã chuyển thành 'Resolved' thì bỏ qua bước log issue mới. Tiếp cận bối cảnh 'các dự án khác' bằng Lessons Learned.",
-              lesson: "Vấn đề kỹ thuật đã đóng thì không cập nhật Issue Log. Rủi ro lan truyền cho các dự án tương tự được quản lý tối ưu thông qua Lessons Learned."
+            {
+              id: "q-seed-2",
+              stt: 2,
+              question: "A key developer on an agile team wants to try a new tech stack for a module, arguing it is cleaner. The rest of the team wants to stick to the pre-approved standard. This has caused a conflict and is slowing down current iteration progress. What should the project manager do first?",
+              domain: "People",
+              options: {
+                A: "Tell the developer to follow the pre-approved standard layout.",
+                B: "Facilitate a structured team discussion to evaluate the technical tradeoffs.",
+                C: "Escalate the issue to the functional manager to decide.",
+                D: "Let the developer try the new stack in this iteration as a spike."
+              },
+              correctOption: "B",
+              userOption: "A",
+              explanation: "Trong quản lý dự án Agile/Scrum, mâu thuẫn về kỹ thuật nên được thảo luận bởi chính nhóm tự quản (self-organizing team). Người PM đóng vai trò điều phối (facilitate) để nhóm tự đưa ra quyết định dựa trên ưu/nhược điểm thực tế chứ không áp đạt mệnh lệnh (Commanding).",
+              threeWOneL: {
+                what: "Chọn nhầm phương án mệnh lệnh A 'Tell the developer...' thay vì giải pháp tạo diễn đàn thảo luận kỹ thuật B.",
+                why: "Bản năng muốn dẹp yên mâu thuẫn nhanh chóng (quick fix) bằng cách buộc thành viên tuân thủ tiêu chuẩn có sẵn, quên mất tiêu chí tự quản (self-organizing) của Agile.",
+                action: "Mâu thuẫn chuyên môn/kỹ thuật -> PM đóng vai trò Facilitate kích hoạt tự xử lý nội bộ, không tự tiện can thiệp áp đặt chuyên môn.",
+                lesson: "Luôn ưu tiên giải quyết xung đột bằng cách điều phối đồng thuận (Collaboration) hơn là dùng quyền áp đặt (Forcing) trong môi trường Agile."
+              },
+              extension: "Agile Practice Guide - SECTION 5: IMPLEMENTING AGILE."
             },
-            extension: "PMBOK 7th - Chapter on Project Work. Quy trình quản lý tri thức (Manage Project Knowledge) bao gồm cập nhật Lessons Learned liên tục sau khi xử lý thành công issue."
-          }]
+            {
+              id: "q-seed-3",
+              stt: 3,
+              question: "A project sponsor requests to add a major feature to the current release backlog. The project is being run using a predictive framework with tight deadlines. What is the best immediate action for the project manager?",
+              domain: "Process",
+              options: {
+                A: "Reject the request because the scope is already baselined.",
+                B: "Perform an initial assessment of the change's impact on project constraints.",
+                C: "Immediately implement the feature and request more budget later.",
+                D: "Submit a Change Request to the Change Control Board (CCB)."
+              },
+              correctOption: "B",
+              userOption: "D",
+              explanation: "Đối với mô hình thác nước (predictive), khi có bất kỳ yêu cầu thay đổi (Change request) nào, người quản lý dự án PHẢI thực hiện đánh giá tác động trước (Impact Assessment) lên các ràng buộc (thời gian, chi phí, rủi ro) trước khi trình CCB phê duyệt.",
+              threeWOneL: {
+                what: "Chọn phương án D trình CCB ngay lập tức mà chưa có số liệu phân tích tác động.",
+                why: "Nghĩ rằng CCB là cấp quyết định tối cao nên cứ đẩy việc phê duyệt cho CCB, bỏ qua trách nhiệm phân tích phạm vi của PM.",
+                action: "Nhận yêu cầu thay đổi -> Tự đánh giá tác động kỹ lưỡng (Impact analysis) -> Đề xuất phương án -> Trình CCB xét duyệt.",
+                lesson: "CCB chỉ phê duyệt khi đã có báo cáo phân tích tác động cụ thể từ PM. Không trình hồ sơ rỗng lên CCB."
+              },
+              extension: "PMBOK 6th - Scope Management & Change Control."
+            },
+            {
+              id: "q-seed-4",
+              stt: 4,
+              question: "During project execution, a new government regulation regarding data privacy is announced, which will take effect in three months. If not complied with, the company will face heavy fines. What is the first thing the project manager should do?",
+              domain: "Business Environment",
+              options: {
+                A: "Stop all current progress to rewrite the data architecture immediately.",
+                B: "Log the new regulation in the risk register and evaluate the impact on project outcomes.",
+                C: "Request the compliance officer to find a legal loophole to bypass the regulation.",
+                D: "Ignore the notice since the project was approved before the regulation took effect."
+              },
+              correctOption: "B",
+              userOption: "A",
+              explanation: "Sự thay đổi của môi trường kinh doanh/luật pháp là rủi ro/cơ hội mới xuất hiện. Bộ quy tắc PMI yêu cầu việc đầu tiên phải là xác định, ghi chép vào Risk Register và phân tích tác động, sau đó mới lên kế hoạch ứng phó phù hợp (không hoảng loạn dừng dự án).",
+              threeWOneL: {
+                what: "Chọn nhầm phương án A hoảng sợ dừng dự án để thiết kế lại ngay lập tức.",
+                why: "Thấy quy định pháp luật phạt nặng nên phản ứng thái quá, bỏ quên trình tự quản trị rủi ro cơ bản của PMI.",
+                action: "Nhân tố bên ngoài thay đổi -> Ghi nhận Risk Register -> Đánh giá mức độ nghiêm trọng/xác suất -> Thiết lập Response Plan.",
+                lesson: "Mọi thay đổi luật pháp hay môi trường vĩ mô đều cần đi qua bộ lọc quản trị rủi ro khoa học, không hành động cảm tính."
+              },
+              extension: "PMBOK 7th - Business Env."
+            },
+            {
+              id: "q-seed-5",
+              stt: 5,
+              question: "A customer complains that the sprint increment delivered by an agile team at the Sprint Review doesn't meet their expectations, although it fits the user stories definition. How should the project manager or Scrum Master address this?",
+              domain: "Agile / Scrum Mindset",
+              options: {
+                A: "Tell the customer that they approved the user stories, so the increment is legally correct.",
+                B: "Blame the development team for mismatching the actual customer expectations.",
+                C: "Facilitate a discussion with the Product Owner and customer to refine the product backlog and user stories definition.",
+                D: "Extend the sprint duration for another week to fix the issues immediately."
+              },
+              correctOption: "C",
+              userOption: "A",
+              explanation: "Tuyên ngôn Agile đề cao 'Mối quan hệ hợp tác với khách hàng hơn là đàm phán hợp đồng'. Nếu bàn giao không đạt kỳ vọng thật sự, nhóm Scrum Master cần phối hợp Product Owner và khách hàng làm rõ Definition of Done và tinh chỉnh lại Backlog trong các buổi lập kế hoạch tiếp theo.",
+              threeWOneL: {
+                what: "Chọn phương án A phòng thủ pháp lý để tự vệ trước phàn nàn của khách hàng.",
+                why: "Thiên kiến bám đuôi tài liệu cứng nhắc (Contract Negotiation), sợ chịu trách nhiệm thay đổi phạm vi phát sinh ngoài Sprint.",
+                action: "Khách hàng không hài lòng sản phẩm Sprint -> Tiếp thu ý kiến ôn hòa -> Đưa vào họp cải tiến (Retrospective) -> Tinh chỉnh Backlog qua PO.",
+                lesson: "Hợp tác đồng hành vượt lên lý thuyết hợp đồng. Phản hồi khách hàng là kim chỉ nam để định hướng giá trị thực phẩm Sprint tiếp theo."
+              },
+              extension: "Agile Practice Guide - Agile Mindset."
+            }
+          ]
         }];
       },
       
@@ -568,6 +691,12 @@
               const qText = String(row[idxQuestion]).trim();
               const domainVal = getValue(idxDomain, "Process");
 
+              const colA = getValue(cleanIdxA, "").trim();
+              const colB = getValue(cleanIdxB, "").trim();
+              const colC = getValue(cleanIdxC, "").trim();
+              const colD = getValue(cleanIdxD, "").trim();
+              const hasColumns = !!(colA || colB || colC || colD);
+
               const extracted = extractOptionsFromQuestion(qText);
               const hasExtractedOptions = (
                 extracted.options.A !== "Option A" &&
@@ -577,31 +706,91 @@
               );
 
               let optionA = "", optionB = "", optionC = "", optionD = "";
-              if (hasExtractedOptions) {
+              if (hasColumns) {
+                optionA = colA || "Option A";
+                optionB = colB || "Option B";
+                optionC = colC || "Option C";
+                optionD = colD || "Option D";
+              } else if (hasExtractedOptions) {
                 optionA = extracted.options.A;
                 optionB = extracted.options.B;
                 optionC = extracted.options.C;
                 optionD = extracted.options.D;
               } else {
-                optionA = getValue(cleanIdxA, "Option A");
-                optionB = getValue(cleanIdxB, "Option B");
-                optionC = getValue(cleanIdxC, "Option C");
-                optionD = getValue(cleanIdxD, "Option D");
+                optionA = "Option A";
+                optionB = "Option B";
+                optionC = "Option C";
+                optionD = "Option D";
               }
 
-              let correctOpt = getValue(idxCorrect, "").toUpperCase();
-              if (correctOpt.includes("A")) correctOpt = "A";
-              else if (correctOpt.includes("B")) correctOpt = "B";
-              else if (correctOpt.includes("C")) correctOpt = "C";
-              else if (correctOpt.includes("D")) correctOpt = "D";
-              else correctOpt = "";
+              // Parse Correct Option Robustly
+              let correctOptRaw = getValue(idxCorrect, "").trim();
+              let correctOpt = "";
+              
+              if (correctOptRaw) {
+                const upperRaw = correctOptRaw.toUpperCase();
+                if (/^[A-D]$/.test(upperRaw)) {
+                  correctOpt = upperRaw;
+                } else if (/^[A-D][\.\)\:\-]\s*/.test(upperRaw)) {
+                  correctOpt = upperRaw[0];
+                } else {
+                  // Check if correctness details match text values of options
+                  const normCorrect = correctOptRaw.toLowerCase().replace(/[^a-z0-9]/g, "");
+                  const normA = optionA.toLowerCase().replace(/[^a-z0-9]/g, "");
+                  const normB = optionB.toLowerCase().replace(/[^a-z0-9]/g, "");
+                  const normC = optionC.toLowerCase().replace(/[^a-z0-9]/g, "");
+                  const normD = optionD.toLowerCase().replace(/[^a-z0-9]/g, "");
+                  
+                  if (normCorrect && (normCorrect === normA || normA.includes(normCorrect) || normCorrect.includes(normA))) {
+                    correctOpt = "A";
+                  } else if (normCorrect && (normCorrect === normB || normB.includes(normCorrect) || normCorrect.includes(normB))) {
+                    correctOpt = "B";
+                  } else if (normCorrect && (normCorrect === normC || normC.includes(normCorrect) || normCorrect.includes(normC))) {
+                    correctOpt = "C";
+                  } else if (normCorrect && (normCorrect === normD || normD.includes(normCorrect) || normCorrect.includes(normD))) {
+                    correctOpt = "D";
+                  } else {
+                    const firstLetterMatch = upperRaw.match(/\b([A-D])\b/);
+                    if (firstLetterMatch) {
+                      correctOpt = firstLetterMatch[1];
+                    }
+                  }
+                }
+              }
 
-              let userOpt = getValue(idxUser, "").toUpperCase();
-              if (userOpt.includes("A")) userOpt = "A";
-              else if (userOpt.includes("B")) userOpt = "B";
-              else if (userOpt.includes("C")) userOpt = "C";
-              else if (userOpt.includes("D")) userOpt = "D";
-              else userOpt = "";
+              // Parse User Selected Option Robustly
+              let userOptRaw = getValue(idxUser, "").trim();
+              let userOpt = "";
+              
+              if (userOptRaw) {
+                const upperUser = userOptRaw.toUpperCase();
+                if (/^[A-D]$/.test(upperUser)) {
+                  userOpt = upperUser;
+                } else if (/^[A-D][\.\)\:\-]\s*/.test(upperUser)) {
+                  userOpt = upperUser[0];
+                } else {
+                  const normUser = userOptRaw.toLowerCase().replace(/[^a-z0-9]/g, "");
+                  const normA = optionA.toLowerCase().replace(/[^a-z0-9]/g, "");
+                  const normB = optionB.toLowerCase().replace(/[^a-z0-9]/g, "");
+                  const normC = optionC.toLowerCase().replace(/[^a-z0-9]/g, "");
+                  const normD = optionD.toLowerCase().replace(/[^a-z0-9]/g, "");
+                  
+                  if (normUser && (normUser === normA || normA.includes(normUser) || normUser.includes(normA))) {
+                    userOpt = "A";
+                  } else if (normUser && (normUser === normB || normB.includes(normUser) || normUser.includes(normB))) {
+                    userOpt = "B";
+                  } else if (normUser && (normUser === normC || normC.includes(normUser) || normUser.includes(normC))) {
+                    userOpt = "C";
+                  } else if (normUser && (normUser === normD || normD.includes(normUser) || normUser.includes(normD))) {
+                    userOpt = "D";
+                  } else {
+                    const firstLetterMatch = upperUser.match(/\b([A-D])\b/);
+                    if (firstLetterMatch) {
+                      userOpt = firstLetterMatch[1];
+                    }
+                  }
+                }
+              }
 
               newQuestions.push({
                 id: "q-excel-" + Date.now() + "-" + i,
@@ -627,17 +816,37 @@
               return;
             }
 
-            // Append questions to current session of App or create a new session named after file
-            const uploadSessionName = file.name.replace(/\.[^/.]+$/, "") + " Import";
-            const sessionObj = {
-              id: "session-" + Date.now(),
-              title: uploadSessionName,
-              date: new Date().toISOString().split("T")[0],
-              notes: "Buổi học được thiết lập tự động bằng file Excel nhập liệu.",
-              questions: newQuestions
-            };
+            // Detect if an existing session already has a matching title or matching body name, and overwrite it if so to prevent duplicates.
+            const baseName = file.name.replace(/\.[^/.]+$/, "").trim();
+            const uploadSessionName = baseName + " Import";
 
-            state.sessions.push(sessionObj);
+            let existingSessionIndex = state.sessions.findIndex(s => {
+              const sTitle = s.title.trim().toLowerCase();
+              const sBase = s.title.replace(/\s*Import$/i, "").trim().toLowerCase();
+              return sTitle === uploadSessionName.toLowerCase() || sBase === baseName.toLowerCase();
+            });
+
+            let sessionObj;
+            let isOverwritten = false;
+
+            if (existingSessionIndex !== -1) {
+              sessionObj = state.sessions[existingSessionIndex];
+              sessionObj.title = uploadSessionName;
+              sessionObj.date = new Date().toISOString().split("T")[0];
+              sessionObj.notes = "Buổi học được cập nhật lại tự động bằng file Excel nhập liệu mới.";
+              sessionObj.questions = newQuestions;
+              isOverwritten = true;
+            } else {
+              sessionObj = {
+                id: "session-" + Date.now(),
+                title: uploadSessionName,
+                date: new Date().toISOString().split("T")[0],
+                notes: "Buổi học được thiết lập tự động bằng file Excel nhập liệu.",
+                questions: newQuestions
+              };
+              state.sessions.push(sessionObj);
+            }
+
             state.selectedSessionId = sessionObj.id;
             state.selectedQuestionId = sessionObj.questions[0].id;
             
@@ -646,7 +855,11 @@
             app.renderQuestionsDirectory();
             app.selectQuestion(state.selectedQuestionId);
             
-            showToast(`Đã import thành công ${newQuestions.length} câu hỏi!`);
+            if (isOverwritten) {
+              showToast(`Đã cập nhật bộ câu hỏi "${sessionObj.title}" với ${newQuestions.length} câu hỏi mới!`);
+            } else {
+              showToast(`Đã tải lên bộ câu hỏi "${sessionObj.title}" với ${newQuestions.length} câu hỏi!`);
+            }
             e.target.value = ""; // Clear file picker
           } catch (err) {
             alert("Lỗi đọc file Excel: " + err.message);
@@ -757,6 +970,53 @@
         }
       },
 
+      confirm: (message, callback) => {
+        const modal = document.getElementById("custom-confirm-modal");
+        const msgEl = document.getElementById("custom-confirm-message");
+        const btn = document.getElementById("custom-confirm-submit-btn");
+        if (modal && msgEl && btn) {
+          msgEl.textContent = message;
+          btn.onclick = () => {
+            app.closeConfirmModal();
+            callback();
+          };
+          modal.classList.remove("hidden");
+          lucide.createIcons();
+        } else {
+          if (window.confirm(message)) callback();
+        }
+      },
+
+      closeConfirmModal: () => {
+        const modal = document.getElementById("custom-confirm-modal");
+        if (modal) modal.classList.add("hidden");
+      },
+
+      alert: (message) => {
+        const modal = document.getElementById("custom-alert-modal");
+        const msgEl = document.getElementById("custom-alert-message");
+        if (modal && msgEl) {
+          msgEl.textContent = message;
+          modal.classList.remove("hidden");
+          lucide.createIcons();
+        } else {
+          try {
+            if (window._nativeAlert) {
+              window._nativeAlert(message);
+            } else {
+              console.warn("Alert:", message);
+            }
+          } catch (e) {
+            console.warn("Alert blocked:", message);
+          }
+        }
+      },
+
+      closeAlertModal: () => {
+        const modal = document.getElementById("custom-alert-modal");
+        if (modal) modal.classList.add("hidden");
+      },
+
       setMobileView: (view) => {
         state.mobileViewState = view;
         const sidebar = document.getElementById("sidebar-panel");
@@ -778,6 +1038,8 @@
       },
 
       init: async () => {
+        window._nativeAlert = window.alert;
+        window.alert = app.alert;
         state.sessions = await persistence.load();
         if (state.sessions.length > 0) {
           state.selectedSessionId = state.sessions[0].id;
@@ -896,24 +1158,25 @@
         showToast("Tạo buổi học sai PMP mới thành công!");
       },
 
-      deleteSelectedSession: async () => {
+      deleteSelectedSession: () => {
         if (state.sessions.length === 0) return;
-        if (!confirm("Bạn có chắc chắn muốn xóa vĩnh viễn toàn bộ buổi học này không?")) return;
+        app.confirm("Bạn có chắc chắn muốn xóa vĩnh viễn toàn bộ buổi học này không?", async () => {
+          state.sessions = state.sessions.filter(s => s.id !== state.selectedSessionId);
+          state.selectedSessionId = state.sessions.length > 0 ? state.sessions[0].id : "";
+          const ses = app.getCurrentSession();
+          state.selectedQuestionId = (ses && ses.questions.length > 0) ? ses.questions[0].id : null;
 
-        state.sessions = state.sessions.filter(s => s.id !== state.selectedSessionId);
-        state.selectedSessionId = state.sessions.length > 0 ? state.sessions[0].id : "";
-        const ses = app.getCurrentSession();
-        state.selectedQuestionId = (ses && ses.questions.length > 0) ? ses.questions[0].id : null;
-
-        await persistence.save(state.sessions);
-        app.renderSidebarSelector();
-        app.renderQuestionsDirectory();
-        if (state.selectedQuestionId) {
-          app.selectQuestion(state.selectedQuestionId);
-        } else {
-          app.renderEmptyState();
-        }
-        showToast("Đã xóa buổi học sầm uất.");
+          await persistence.save(state.sessions);
+          app.renderSidebarSelector();
+          app.renderQuestionsDirectory();
+          app.updateStats();
+          if (state.selectedQuestionId) {
+            app.selectQuestion(state.selectedQuestionId);
+          } else {
+            app.renderEmptyState();
+          }
+          showToast("Đã xóa buổi học thành công.");
+        });
       },
 
       triggerFilter: () => {
@@ -1027,22 +1290,23 @@
         }
       },
 
-      deleteActiveQuestion: async () => {
+      deleteActiveQuestion: () => {
         const ses = app.getCurrentSession();
         if (!ses || !state.selectedQuestionId) return;
-        if (!confirm("Xóa lỗi sai này khỏi sổ tay?")) return;
+        app.confirm("Xóa lỗi sai này khỏi sổ tay?", async () => {
+          ses.questions = ses.questions.filter(q => q.id !== state.selectedQuestionId);
+          state.selectedQuestionId = ses.questions.length > 0 ? ses.questions[0].id : null;
 
-        ses.questions = ses.questions.filter(q => q.id !== state.selectedQuestionId);
-        state.selectedQuestionId = ses.questions.length > 0 ? ses.questions[0].id : null;
-
-        await persistence.save(state.sessions);
-        app.renderQuestionsDirectory();
-        if (state.selectedQuestionId) {
-          app.selectQuestion(state.selectedQuestionId);
-        } else {
-          app.renderEmptyState();
-        }
-        showToast("Đã xóa câu hỏi sai khỏi log book.");
+          await persistence.save(state.sessions);
+          app.renderQuestionsDirectory();
+          app.updateStats();
+          if (state.selectedQuestionId) {
+            app.selectQuestion(state.selectedQuestionId);
+          } else {
+            app.renderEmptyState();
+          }
+          showToast("Đã xóa câu hỏi sai khỏi log book.");
+        });
       },
 
       renderEmptyState: () => {
@@ -1481,7 +1745,7 @@
                 </div>
                 <div>
                   <label class="block text-slate-500 mb-1">WHY (Tại sao nhầm? Giải mã động cơ sai lệch)</label>
-                  <input type="text" id="file-why" value="${q ? q.threeWOneL.why : ""}" placeholder="Do thiên kiến Servant leader nghĩ phải lập tức dẹp bỏ rào cản hỗ trợ kỹ sư..." class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg" />
+                  <input type="text" id="form-why" value="${q ? q.threeWOneL.why : ""}" placeholder="Do thiên kiến Servant leader nghĩ phải lập tức dẹp bỏ rào cản hỗ trợ kỹ sư..." class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg" />
                 </div>
                 <div>
                   <label class="block text-slate-500 mb-1">ACTION (Hành động sửa sai? Cách tư duy đúng chuẩn PMI)</label>
@@ -1528,7 +1792,7 @@
         const corr = document.getElementById("form-correct-opt").value;
         const usr = document.getElementById("form-user-opt").value;
         const what = document.getElementById("form-what").value.trim();
-        const why = document.getElementById("file-why").value.trim();
+        const why = document.getElementById("form-why").value.trim();
         const act = document.getElementById("form-action").value.trim();
         const les = document.getElementById("form-lesson").value.trim();
         const exp = document.getElementById("form-explanation").value.trim();
